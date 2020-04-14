@@ -1,0 +1,383 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>676</width>
+    <height>464</height>
+   </rect>
+  </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
+  </property>
+  <property name="windowTitle">
+   <string>Crono Tareas</string>
+  </property>
+  <property name="windowIcon">
+   <iconset resource="mirecurso.qrc">
+    <normaloff>:/miprefijo/images/cronotareas.png</normaloff>:/miprefijo/images/cronotareas.png</iconset>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <widget class="QLabel" name="labelCronoTareas">
+    <property name="geometry">
+     <rect>
+      <x>91</x>
+      <y>17</y>
+      <width>141</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>Gallaecia Castelo</family>
+      <pointsize>14</pointsize>
+      <weight>50</weight>
+      <bold>false</bold>
+     </font>
+    </property>
+    <property name="text">
+     <string>Crono Tareas</string>
+    </property>
+   </widget>
+   <widget class="Line" name="line">
+    <property name="geometry">
+     <rect>
+      <x>92</x>
+      <y>43</y>
+      <width>570</width>
+      <height>3</height>
+     </rect>
+    </property>
+    <property name="orientation">
+     <enum>Qt::Horizontal</enum>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label">
+    <property name="geometry">
+     <rect>
+      <x>620</x>
+      <y>43</y>
+      <width>40</width>
+      <height>17</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>Gallaecia Castelo</family>
+      <pointsize>7</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>v.1.0</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+    </property>
+   </widget>
+   <widget class="QLabel" name="labelCronoTareas_2">
+    <property name="geometry">
+     <rect>
+      <x>105</x>
+      <y>41</y>
+      <width>530</width>
+      <height>30</height>
+     </rect>
+    </property>
+    <property name="sizePolicy">
+     <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+      <horstretch>0</horstretch>
+      <verstretch>0</verstretch>
+     </sizepolicy>
+    </property>
+    <property name="font">
+     <font>
+      <family>Gallaecia Castelo</family>
+      <pointsize>10</pointsize>
+      <weight>50</weight>
+      <bold>false</bold>
+     </font>
+    </property>
+    <property name="frameShape">
+     <enum>QFrame::NoFrame</enum>
+    </property>
+    <property name="frameShadow">
+     <enum>QFrame::Plain</enum>
+    </property>
+    <property name="text">
+     <string>Cronometra la duración de tus Tareas y genera informes resumen de las mismas</string>
+    </property>
+    <property name="scaledContents">
+     <bool>false</bool>
+    </property>
+    <property name="wordWrap">
+     <bool>true</bool>
+    </property>
+   </widget>
+   <widget class="QTabWidget" name="tabWidgetTareas">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>90</y>
+      <width>640</width>
+      <height>350</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>Gallaecia Castelo</family>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true"/>
+    </property>
+    <property name="currentIndex">
+     <number>0</number>
+    </property>
+    <widget class="QWidget" name="tab_1">
+     <attribute name="icon">
+      <iconset resource="mirecurso.qrc">
+       <normaloff>:/miprefijo/images/tareas2.ico</normaloff>:/miprefijo/images/tareas2.ico</iconset>
+     </attribute>
+     <attribute name="title">
+      <string>&amp;Tareas</string>
+     </attribute>
+     <widget class="QLabel" name="labelCronoTareas_3">
+      <property name="geometry">
+       <rect>
+        <x>12</x>
+        <y>2</y>
+        <width>601</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <family>Gallaecia Castelo</family>
+        <pointsize>10</pointsize>
+        <weight>50</weight>
+        <bold>false</bold>
+       </font>
+      </property>
+      <property name="text">
+       <string>Añade nuevas tareas, selecciona una fila para modificar o eliminar</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="pushButtonAgregarTarea">
+      <property name="geometry">
+       <rect>
+        <x>12</x>
+        <y>280</y>
+        <width>101</width>
+        <height>29</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <family>Gallaecia Castelo</family>
+       </font>
+      </property>
+      <property name="styleSheet">
+       <string notr="true"/>
+      </property>
+      <property name="text">
+       <string>&amp;Añadir</string>
+      </property>
+      <property name="icon">
+       <iconset resource="mirecurso.qrc">
+        <normaloff>:/miprefijo/images/agregar.ico</normaloff>:/miprefijo/images/agregar.ico</iconset>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="pushButtonModificarTarea">
+      <property name="geometry">
+       <rect>
+        <x>126</x>
+        <y>280</y>
+        <width>101</width>
+        <height>29</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <family>Gallaecia Castelo</family>
+       </font>
+      </property>
+      <property name="text">
+       <string>&amp;Modificar</string>
+      </property>
+      <property name="icon">
+       <iconset resource="mirecurso.qrc">
+        <normaloff>:/miprefijo/images/modificar.ico</normaloff>:/miprefijo/images/modificar.ico</iconset>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="pushButtonEliminarTarea">
+      <property name="geometry">
+       <rect>
+        <x>239</x>
+        <y>280</y>
+        <width>101</width>
+        <height>29</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <family>Gallaecia Castelo</family>
+       </font>
+      </property>
+      <property name="text">
+       <string>&amp;Eliminar</string>
+      </property>
+      <property name="icon">
+       <iconset resource="mirecurso.qrc">
+        <normaloff>:/miprefijo/images/eliminar.ico</normaloff>:/miprefijo/images/eliminar.ico</iconset>
+      </property>
+     </widget>
+     <widget class="QListWidget" name="listWidgetTareas">
+      <property name="geometry">
+       <rect>
+        <x>12</x>
+        <y>42</y>
+        <width>610</width>
+        <height>230</height>
+       </rect>
+      </property>
+      <property name="frameShape">
+       <enum>QFrame::StyledPanel</enum>
+      </property>
+      <property name="midLineWidth">
+       <number>1</number>
+      </property>
+      <property name="alternatingRowColors">
+       <bool>true</bool>
+      </property>
+      <property name="selectionBehavior">
+       <enum>QAbstractItemView::SelectRows</enum>
+      </property>
+     </widget>
+     <widget class="QCheckBox" name="checkBoxMultiCrono">
+      <property name="geometry">
+       <rect>
+        <x>363</x>
+        <y>284</y>
+        <width>260</width>
+        <height>22</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>10</pointsize>
+       </font>
+      </property>
+      <property name="text">
+       <string>Permitir varios cronos simultaneos</string>
+      </property>
+      <property name="checked">
+       <bool>false</bool>
+      </property>
+     </widget>
+     <widget class="QLabel" name="labelCronoTareas_4">
+      <property name="geometry">
+       <rect>
+        <x>21</x>
+        <y>24</y>
+        <width>20</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <family>Gallaecia Castelo</family>
+        <pointsize>10</pointsize>
+        <weight>75</weight>
+        <bold>true</bold>
+        <underline>false</underline>
+       </font>
+      </property>
+      <property name="text">
+       <string>ID</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="labelCronoTareas_5">
+      <property name="geometry">
+       <rect>
+        <x>59</x>
+        <y>24</y>
+        <width>50</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <family>Gallaecia Castelo</family>
+        <pointsize>10</pointsize>
+        <weight>75</weight>
+        <bold>true</bold>
+        <underline>false</underline>
+       </font>
+      </property>
+      <property name="text">
+       <string>Tarea</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="labelCronoTareas_6">
+      <property name="geometry">
+       <rect>
+        <x>223</x>
+        <y>24</y>
+        <width>50</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <family>Gallaecia Castelo</family>
+        <pointsize>10</pointsize>
+        <weight>75</weight>
+        <bold>true</bold>
+        <underline>false</underline>
+       </font>
+      </property>
+      <property name="text">
+       <string>Tag</string>
+      </property>
+     </widget>
+    </widget>
+    <widget class="QWidget" name="tab_2">
+     <attribute name="icon">
+      <iconset resource="mirecurso.qrc">
+       <normaloff>:/miprefijo/images/informes2.ico</normaloff>:/miprefijo/images/informes2.ico</iconset>
+     </attribute>
+     <attribute name="title">
+      <string>&amp;Informes</string>
+     </attribute>
+    </widget>
+   </widget>
+   <widget class="QLabel" name="labelIcono">
+    <property name="geometry">
+     <rect>
+      <x>16</x>
+      <y>8</y>
+      <width>60</width>
+      <height>60</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">border-image: url(:/miprefijo/images/cronotareas.png);</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+ </widget>
+ <resources>
+  <include location="mirecurso.qrc"/>
+ </resources>
+ <connections/>
+</ui>

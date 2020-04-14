@@ -1,0 +1,15 @@
+<RCC>
+  <qresource prefix="miprefijo">
+    <file>images/agregar.ico</file>
+    <file>images/informes2.ico</file>
+    <file>images/tareas2.ico</file>
+    <file>images/eliminar.ico</file>
+    <file>images/modificar.ico</file>
+    <file>images/continue.ico</file>
+    <file>images/pause.ico</file>
+    <file>images/play.ico</file>
+    <file>images/refresh.ico</file>
+    <file>images/refresh2.ico</file>
+    <file>images/cronotareas.png</file>
+  </qresource>
+</RCC>
