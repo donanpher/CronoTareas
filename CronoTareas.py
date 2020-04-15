@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-#  CronoTareas, v.1.0
+#  CronoTareas, v.1.1
 #  Sencilla aplicación para cronometrar tiempos asociados a tareas.
 #  
 #  Copyright April, 2020 fer <donanpher@gmail.com>
@@ -44,17 +44,23 @@ class AppWindow(QMainWindow):
             self.mensajeBarraDeEstado = "No se encontró Base de Datos, creada una nueva!"
         else:
             self.mensajeBarraDeEstado = "Base de Datos cargada"
+        #self.ui.statusbar.showMessage(self.mensajeBarraDeEstado, 5000)
+        self.miFont = QtGui.QFont()
+        self.miFont.setFamily("Gallaecia Castelo")
+        self.miFont.setPointSize(10)
+        #self.miFont.setBold(True)
+        self.ui.statusbar.setFont(self.miFont)
         
         # esta variable depende de widget checkBoxMultiCrono y se usa para permitir o no la simultaneidad de los cronos
         # normalmente sería lógico que sólo un crono funcione a la vez, pero por si se quiere que no, se da la opción.
         self.PermitirCronosSimultaneos = self.ui.checkBoxMultiCrono.isChecked()
-
-        self.ui.statusbar.showMessage(self.mensajeBarraDeEstado, 5000)
+        self.ui.statusbar.showMessage("Modo: Mono Crono")
         # conexión de los botones con sus respectivos slots
         self.ui.pushButtonAgregarTarea.clicked.connect(self.AgregarTarea)
         self.ui.pushButtonEliminarTarea.clicked.connect(self.EliminarTarea)
         #self.ui.pushButtonEliminarTarea.clicked.connect(self.GuardarEstadoTareas) # PROVISIONAL
         self.ui.pushButtonModificarTarea.clicked.connect(self.ModificarTarea)
+        self.ui.pushButtonRecargar.clicked.connect(self.Recargar)
         self.ui.listWidgetTareas.itemDoubleClicked.connect(self.ModificarTarea)
         self.ui.checkBoxMultiCrono.stateChanged.connect(self.CronosSimultaneos)
 
@@ -63,6 +69,10 @@ class AppWindow(QMainWindow):
 
     def CronosSimultaneos(self):
         self.PermitirCronosSimultaneos = not self.PermitirCronosSimultaneos
+        if self.PermitirCronosSimultaneos:
+            self.ui.statusbar.showMessage("Modo: Multi Crono")
+        else:
+            self.ui.statusbar.showMessage("Modo: Mono Crono")
 
     def AgregarTarea(self):
         #QMessageBox.about(self, "Información", "Agregando Tarea")
@@ -70,12 +80,16 @@ class AppWindow(QMainWindow):
         if dlg.exec_():
             #self.AnhadirItem("999", dlg.miLineEditTareaDialog.text(), dlg.miLineEditTagDialog.text())
             try:
+                # esta es la fecha y hora del momento actual para guardarla en la BD. al dar un alta
+                self.Ahora = datetime.now()
+                self.strAhora = datetime.strftime(self.Ahora, "%Y-%m-%d %H:%M:%S")
                 # modificamos en la BD.
                 conn = sqlite3.connect(BaseDeDatos)
                 cur = conn.cursor()
                 modifTarea = dlg.miLineEditTareaDialog.text()
                 modifTag = dlg.miLineEditTagDialog.text()
-                miQuery = "INSERT INTO Tareas (NombreTarea, Tag) VALUES ('" + modifTarea + "', '" + modifTag + "')"
+                miQuery = "INSERT INTO Tareas (NombreTarea, Tag, FechaAlta) \
+                            VALUES ('" + modifTarea + "', '" + modifTag + "', '" + self.strAhora + "')"
                 cur.execute(miQuery)
                 conn.commit()
                 # ahora borramos todo el contenido del listWidget para volver a cargarlo con los datos actualizados
@@ -217,6 +231,11 @@ class AppWindow(QMainWindow):
             self.ui.statusbar.showMessage(str(e), 10000)
         finally:
             conn.close()
+    
+    def Recargar(self):
+        self.ui.listWidgetTareas.clear()
+        self.MostrarTabla("SELECT * FROM Tareas ORDER BY FechaAlta DESC, IDTarea DESC;")
+
 
     def CrearDB(self):
         # Si no existe la BD en el directorio activo, la creamos e insertamos un registro de muestra
@@ -367,6 +386,8 @@ class MiTimer(QWidget):
         self.setLayout(self.miLayOut)
 
     def IniciarCrono(self):
+        # La idea de todo esto es que si se está en modo monocrono, sólo se pueda tener activo uno, los que están en pausa no están activos.
+        # En el modo multicrono, se permite que estén activos todos los cronos que se quieran.
         # Si se permiten varios cronos simultáneos, o si no se permiten pero que sólo haya uno activo o que el pulsado sea de Pausa o Continuar
         # (esta condición me llevó unas cuantas horas/sesiones elaborarla)
         if (w.PermitirCronosSimultaneos) or (
@@ -410,17 +431,22 @@ class MiTimer(QWidget):
             QMessageBox.about(self, "Información", "No se puede activar más de un Crono a la vez." \
                                 + "\nPuedes activar esta opción en la pantalla principal.")
 
-        # si hay más de un crono activo, deshabilito el check (para evitar inconsistencias)
-        # ***CONTINUAR AQUI
-        if MiTimer.numCronosActivos > 1:
-            w.ui.checkBoxMultiCrono.setEnabled(False)
-        else:
-            w.ui.checkBoxMultiCrono.setEnabled(True)
+        # Si el check está en modo monocrono, se deja habilitado para permitir conmutar a modo multicrono
+        # Si el check está en modo multicron, se deshabilita si hay más de un crono activo
+        # ***PENDIENTE: Pendiente de comprobar más a fondo toda la casuística ...
+        if w.PermitirCronosSimultaneos: # modo multicrono
+            if MiTimer.numCronosActivos > 1:
+                w.ui.checkBoxMultiCrono.setEnabled(False)
+            else:
+                w.ui.checkBoxMultiCrono.setEnabled(True)
+        else: # modo monocrono
+                w.ui.checkBoxMultiCrono.setEnabled(True)
 
     def PararCrono(self):
+        # Botón Reset: se pone a cero, pero preguntamos si desea guardar este crono para más adelante
         MiTimer.hayUnCronoActivo = False
         #if self.Pausa: # si está en marcha un crono sin haber habido una pausa 
-        MiTimer.numCronosActivos -= 1 # sólo considero no activo un crono cuando se resetea
+        MiTimer.numCronosActivos -= 1
         print("CRONOS ACTIVOS: ", str(MiTimer.numCronosActivos)), 
         print("")
         self.timer.stop()
@@ -429,8 +455,13 @@ class MiTimer(QWidget):
         cadena = str(self.tiempoActual.hour()) + ":" \
                 + str(self.tiempoActual.minute()) + ":"  \
                 + str(self.tiempoActual.second())
-        QMessageBox.about(self, "Información", cadena)
-        #QMessageBox.about(self, "Información", str(self.tiempoActual.elapsed()))
+        # #QMessageBox.about(self, "Información", cadena)
+        # buttonReply = QMessageBox.question(self, 'Guardar Crono Actual', "¿Quieres guardar el estado de este Crono?:\n" 
+        #                                     + cadena, QMessageBox.Yes | QMessageBox.No, QMessageBox.Yes)
+        # if buttonReply == QMessageBox.Yes:
+        #     pass
+        # else:
+        #     pass
         self.tiempoActual = QtCore.QTime(0,0,0)
         self.miDisplay.display(self.tiempoActual.toString('hh:mm:ss'))
         self.Pausa = False
@@ -447,6 +478,8 @@ class MiTimer(QWidget):
         else:
             w.ui.checkBoxMultiCrono.setEnabled(True)
 
+    def GuardarEstadoCrono(self):
+        pass
 
     def showlcd(self):
         # self.Ahora = datetime.now()

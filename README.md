@@ -18,10 +18,15 @@ Abril 2020 (durante la cuarentena del coronavirus COVID-19)
 	- [ ] Guardar estado de todos los cronos, fechas/horas de inicio/fin, etc. en BD.
 	- [ ] Fix!: GuardarEstadoTareas -> Si está en marcha un crono y se modifica la tarea, este se restaura.
 	- [ ] Mostrar total de tareas
-	- [ ] Si durante el funcionamiento de varios cronos se deschecka el checkBox, este ya no surte efecto.
-			Solución: deshabilitar checkBox durante el funcionamiento de varios cronos
 	- [ ] Deshabilitar botón de Modificar durante el funcionamiento de su cron
 	- [ ] Desarrollar todo el tema de los Informes.
+
+### 15-04-2020 [v.1.1] Nuevas características y corrección de errores
+	- [x] Si durante el funcionamiento de varios cronos se deschecka el checkBox, este ya no surte efecto.
+			Solución: deshabilitar checkBox durante el funcionamiento de varios cronos
+	- [x] Al agregar tarea, se añade a la BD. la fecha y hora actuales
+	- [ ] Añadir al proc. de crear BD. el campo fecha y hora de alta
+	- [x] Añadido botón para recargar toda la lista
 
 
 

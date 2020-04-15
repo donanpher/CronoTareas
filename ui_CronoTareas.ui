@@ -27,7 +27,7 @@
    <widget class="QLabel" name="labelCronoTareas">
     <property name="geometry">
      <rect>
-      <x>91</x>
+      <x>87</x>
       <y>17</y>
       <width>141</width>
       <height>31</height>
@@ -74,7 +74,7 @@
      </font>
     </property>
     <property name="text">
-     <string>v.1.0</string>
+     <string>v.1.1</string>
     </property>
     <property name="alignment">
      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -171,9 +171,9 @@
      <widget class="QPushButton" name="pushButtonAgregarTarea">
       <property name="geometry">
        <rect>
-        <x>12</x>
+        <x>47</x>
         <y>280</y>
-        <width>101</width>
+        <width>100</width>
         <height>29</height>
        </rect>
       </property>
@@ -196,9 +196,9 @@
      <widget class="QPushButton" name="pushButtonModificarTarea">
       <property name="geometry">
        <rect>
-        <x>126</x>
+        <x>152</x>
         <y>280</y>
-        <width>101</width>
+        <width>100</width>
         <height>29</height>
        </rect>
       </property>
@@ -218,9 +218,9 @@
      <widget class="QPushButton" name="pushButtonEliminarTarea">
       <property name="geometry">
        <rect>
-        <x>239</x>
+        <x>256</x>
         <y>280</y>
-        <width>101</width>
+        <width>100</width>
         <height>29</height>
        </rect>
       </property>
@@ -242,7 +242,7 @@
        <rect>
         <x>12</x>
         <y>42</y>
-        <width>610</width>
+        <width>620</width>
         <height>230</height>
        </rect>
       </property>
@@ -262,9 +262,9 @@
      <widget class="QCheckBox" name="checkBoxMultiCrono">
       <property name="geometry">
        <rect>
-        <x>363</x>
+        <x>373</x>
         <y>284</y>
-        <width>260</width>
+        <width>250</width>
         <height>22</height>
        </rect>
       </property>
@@ -344,6 +344,31 @@
       </property>
       <property name="text">
        <string>Tag</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="pushButtonRecargar">
+      <property name="geometry">
+       <rect>
+        <x>11</x>
+        <y>280</y>
+        <width>30</width>
+        <height>29</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <family>Gallaecia Castelo</family>
+       </font>
+      </property>
+      <property name="styleSheet">
+       <string notr="true"/>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+      <property name="icon">
+       <iconset resource="mirecurso.qrc">
+        <normaloff>:/miprefijo/images/recargar.ico</normaloff>:/miprefijo/images/recargar.ico</iconset>
       </property>
      </widget>
     </widget>
