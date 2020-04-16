@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>676</width>
-    <height>464</height>
+    <height>487</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -24,6 +24,12 @@
     <normaloff>:/miprefijo/images/cronotareas.png</normaloff>:/miprefijo/images/cronotareas.png</iconset>
   </property>
   <widget class="QWidget" name="centralwidget">
+   <property name="sizePolicy">
+    <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+     <horstretch>0</horstretch>
+     <verstretch>0</verstretch>
+    </sizepolicy>
+   </property>
    <widget class="QLabel" name="labelCronoTareas">
     <property name="geometry">
      <rect>
@@ -74,7 +80,7 @@
      </font>
     </property>
     <property name="text">
-     <string>v.1.1</string>
+     <string>v.1.2</string>
     </property>
     <property name="alignment">
      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -125,7 +131,7 @@
       <x>20</x>
       <y>90</y>
       <width>640</width>
-      <height>350</height>
+      <height>370</height>
      </rect>
     </property>
     <property name="font">
@@ -172,7 +178,7 @@
       <property name="geometry">
        <rect>
         <x>47</x>
-        <y>280</y>
+        <y>298</y>
         <width>100</width>
         <height>29</height>
        </rect>
@@ -197,7 +203,7 @@
       <property name="geometry">
        <rect>
         <x>152</x>
-        <y>280</y>
+        <y>298</y>
         <width>100</width>
         <height>29</height>
        </rect>
@@ -219,7 +225,7 @@
       <property name="geometry">
        <rect>
         <x>256</x>
-        <y>280</y>
+        <y>298</y>
         <width>100</width>
         <height>29</height>
        </rect>
@@ -263,7 +269,7 @@
       <property name="geometry">
        <rect>
         <x>373</x>
-        <y>284</y>
+        <y>302</y>
         <width>250</width>
         <height>22</height>
        </rect>
@@ -350,7 +356,7 @@
       <property name="geometry">
        <rect>
         <x>11</x>
-        <y>280</y>
+        <y>298</y>
         <width>30</width>
         <height>29</height>
        </rect>
@@ -359,6 +365,9 @@
        <font>
         <family>Gallaecia Castelo</family>
        </font>
+      </property>
+      <property name="toolTip">
+       <string>Recargar lista de Tareas</string>
       </property>
       <property name="styleSheet">
        <string notr="true"/>
@@ -369,6 +378,27 @@
       <property name="icon">
        <iconset resource="mirecurso.qrc">
         <normaloff>:/miprefijo/images/recargar.ico</normaloff>:/miprefijo/images/recargar.ico</iconset>
+      </property>
+     </widget>
+     <widget class="QLabel" name="labelTotalTareas">
+      <property name="geometry">
+       <rect>
+        <x>12</x>
+        <y>273</y>
+        <width>250</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <family>Gallaecia Castelo</family>
+        <pointsize>10</pointsize>
+        <weight>50</weight>
+        <bold>false</bold>
+       </font>
+      </property>
+      <property name="text">
+       <string>Total Tareas: </string>
       </property>
      </widget>
     </widget>
