@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-#  CronoTareas, v.1.2
+#  CronoTareas, v.1.3
 #  Sencilla aplicación para cronometrar tiempos asociados a tareas.
 #  Creada usando Python 3.6.7 + PyQt5
 #  
@@ -87,8 +87,8 @@ class AppWindow(QMainWindow):
                 cur = conn.cursor()
                 modifTarea = dlg.miLineEditTareaDialog.text()
                 modifTag = dlg.miLineEditTagDialog.text()
-                miQuery = "INSERT INTO Tareas (NombreTarea, Tag, FechaAlta) \
-                            VALUES ('" + modifTarea + "', '" + modifTag + "', '" + self.strAhora + "')"
+                miQuery = "INSERT INTO Tareas (NombreTarea, Tag, FechaAlta, Crono) \
+                            VALUES ('" + modifTarea + "', '" + modifTag + "', '" + self.strAhora + "', '00:00:00')"
                 cur.execute(miQuery)
                 conn.commit()
                 # ahora borramos todo el contenido del listWidget para volver a cargarlo con los datos actualizados
@@ -199,14 +199,15 @@ class AppWindow(QMainWindow):
         # laTarea = miWidget.NombreTarea.text()
         # elTag = miWidget.Tag.text()
 
-    def AnhadirItem(self, nuevoID, nuevaTarea, nuevoTag):
+    def AnhadirItem(self, nuevoID, nuevaTarea, nuevoTag, nuevoCrono):
         # Un Item es cada fila de la lista de tareas
         # Este método es llamado por el método MostrarTabla, para ir añadiendo todos los reg. de la BD.
         self.nuevoID = nuevoID
         self.nuevaTarea = nuevaTarea
         self.nuevoTag = nuevoTag
+        self.nuevoCrono = nuevoCrono
         miItem = QListWidgetItem()
-        miCustomWidget = MiTimer(self.nuevoID, self.nuevaTarea, self.nuevoTag)
+        miCustomWidget = MiTimer(self.nuevoID, self.nuevaTarea, self.nuevoTag, self.nuevoCrono)
         miItem.setSizeHint(miCustomWidget.sizeHint())
         self.ui.listWidgetTareas.addItem(miItem) # añade el item al final de la lista
         #self.ui.listWidgetTareas.insertItem(0, miItem) # inserta el item en primer lugar de la lista
@@ -225,7 +226,7 @@ class AppWindow(QMainWindow):
             #elf.ui.tableWidgetNotas.setRowCount(totalReg) # dimensionamos el widget en filas
             recNum = 0
             for registro in registros:
-                self.AnhadirItem(str(registro[0]), registro[1], registro[2])
+                self.AnhadirItem(str(registro[0]), registro[1], registro[2], registro[4]) # estos son los campos
                 recNum += 1
 
         except Error as e:
@@ -261,7 +262,8 @@ class AppWindow(QMainWindow):
                                             NOT NULL, \
                         NombreTarea TEXT (30), \
                         Tag         TEXT (20), \
-                        FechaAlta   TEXT (20)  \
+                        FechaAlta   TEXT (20),  \
+                        Crono       TEXT (20)  \
                     );"
             cur.execute(laQuery)
             conn.commit()
@@ -281,12 +283,14 @@ class AppWindow(QMainWindow):
             laQuery = "INSERT INTO Tareas ( \
                        NombreTarea, \
                        Tag, \
-                       FechaAlta \
+                       FechaAlta, \
+                       Crono \
                         ) \
                         VALUES ( \
                             'Tarea 1', \
                             'Test Tareas', \
-                            '2020-04-12 12:16:08' \
+                            '2020-04-12 12:16:08', \
+                            '00:00:00' \
                         );"
             cur.execute(laQuery)
             conn.commit()
@@ -341,17 +345,18 @@ class MiTimer(QWidget):
     numCronosActivos = 0 
 
     # esta es la linea (WidgetItem), con la colección de widgets (dentro de un QHBoxLayout), que se pinta dentro de la lista.
-    def __init__(self, miID, miTarea, miTag, parent=None):
+    def __init__(self, miID, miTarea, miTag, miCrono, parent=None):
         super(MiTimer, self).__init__(parent)
         self.miID = miID
         self.miTarea = miTarea
         self.miTag = miTag
+        self.miCrono = miCrono
         self.altoWidgets = 25
         self.anchoBotones = 75
-        self.tiempoActual = QtCore.QTime(0,0,0)
-        self.tiempoActual2Ini = datetime.now() ##########################
-        self.tiempoActual2Fin = datetime.now() ##########################
-        self.segundosAcumulado = 0.0 ####### cuando se hace una pausa, hay que guardar aqui el tiempo transcurrido hasta ese momento para sumarselo después a la reanudación.
+        # self.tiempoActual = QtCore.QTime(0,0,0)
+        self.tiempoActual2Ini = datetime.now()
+        self.tiempoActual2Fin = datetime.now()
+        self.segundosAcumulado = 0.0 # cuando se hace una pausa, hay que guardar aqui el tiempo transcurrido hasta ese momento para sumarselo después a la reanudación.
         #self.tiempoFinal = QTime(0,0,0)
         self.timer = QtCore.QTimer(self)
         self.IDTarea = QLabel(self.miID)
@@ -382,32 +387,32 @@ class MiTimer(QWidget):
         self.botonParar.clicked.connect(self.PararCrono)
         self.botonParar.setEnabled(False)
         self.botonParar.setToolTip('<b>Resetea</b> el Crono y también pregunta si se desea <br><b>Guardar su estado</b>.')
-        self.miDisplay = QLCDNumber()
-        self.miDisplay.setDigitCount(8)
-        self.miDisplay.setSegmentStyle(QtWidgets.QLCDNumber.Flat)
-        self.miDisplay.setFixedWidth(self.anchoBotones + 30)
-        self.miDisplay.setFixedHeight(30)
+        # self.miDisplay = QLCDNumber()
+        # self.miDisplay.setDigitCount(8)
+        # self.miDisplay.setSegmentStyle(QtWidgets.QLCDNumber.Flat)
+        # self.miDisplay.setFixedWidth(self.anchoBotones + 30)
+        # self.miDisplay.setFixedHeight(30)
         # self.font = QtGui.QFont()
         # self.font.setBold(True)
         # self.miDisplay.setFont(self.font)
         ###########################################################################################################################
-        # Este es un custom QLCDNumber copiada la idea, no todo, de: (https://gist.github.com/juancarlospaco/c0fb15281d56dc6eb2f4)
         self.miSegundoDisplay = QLCDNumber()
         self.miSegundoDisplay.setDigitCount(12)
         self.miSegundoDisplay.setSegmentStyle(QtWidgets.QLCDNumber.Flat)
         self.miSegundoDisplay.setFixedWidth(self.anchoBotones + 80)
         self.miSegundoDisplay.setFixedHeight(30)
+        self.miSegundoDisplay.display(self.miCrono)
         ###########################################################################################################################
-        self.showlcd()
-        self.timer.timeout.connect(self.showlcd)
+        #self.showlcd()
+        self.timer.timeout.connect(self.showlcd) # método que se ejecuta con cada Timer
         self.miLayOut = QHBoxLayout()
         self.miLayOut.addWidget(self.IDTarea)
         self.miLayOut.addWidget(self.NombreTarea)
         self.miLayOut.addWidget(self.Tag)
         self.miLayOut.addWidget(self.botonIniciar)
         self.miLayOut.addWidget(self.botonParar)
-        self.miLayOut.addWidget(self.miDisplay)
-        self.miLayOut.addWidget(self.miSegundoDisplay) ##################################
+        # self.miLayOut.addWidget(self.miDisplay)
+        self.miLayOut.addWidget(self.miSegundoDisplay)
         self.setLayout(self.miLayOut)
 
     def IniciarCrono(self):
@@ -425,21 +430,27 @@ class MiTimer(QWidget):
             # en qué modo se pincha el botón iniciar? (Start|Pause|Continue)
             if self.botonIniciar.text() == "Start":
                 self.timer.start(1000) # pongo en marcha el Timer
-                #self.tiempoActual2Ini = datetime.now() - timedelta(days=2) # le resto 2 días ############################
-                self.tiempoActual2Ini = datetime.now() ##########################
-                self.tiempoActual2Fin = datetime.now() ##########################
-                self.segundosAcumulado = 0 #######
+                #self.tiempoActual2Ini = datetime.now() - timedelta(days=2) # le resto 2 días
+                self.tiempoActual2Ini = datetime.now()
+                self.tiempoActual2Fin = datetime.now()
+                # Si se ha restaurado un cronómetro de una vez anterior
+                if self.miCrono != "00:00:00":
+                    # hay que convertir la cadena horaria a segundos
+                    sumar = self.ConvertirCadena_a_Segundos(self.miCrono)
+                    self.segundosAcumulado = float(sumar)
+                else:
+                    self.segundosAcumulado = 0
                 MiTimer.hayUnCronoActivo = True
                 MiTimer.numCronosActivos += 1
-                self.miDisplay.setStyleSheet("QLCDNumber {color: red;}")
-                self.miSegundoDisplay.setStyleSheet("QLCDNumber {color: red;}") ############################
+                # self.miDisplay.setStyleSheet("QLCDNumber {color: red;}")
+                self.miSegundoDisplay.setStyleSheet("QLCDNumber {color: red;}")
                 self.icon3 = QtGui.QIcon()
                 self.icon3.addPixmap(QtGui.QPixmap(":/miprefijo/images/pause.ico"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
                 self.botonIniciar.setText("Pause")
                 self.botonIniciar.setIcon(self.icon3)    
                 self.botonParar.setEnabled(False) # deshabilitamos el botón Reset    
-                print("CRONOS ACTIVOS: ", str(MiTimer.numCronosActivos)), 
-                print("")
+                # print("CRONOS ACTIVOS: ", str(MiTimer.numCronosActivos)), 
+                # print("")
             elif self.botonIniciar.text() =="Pause":
                 self.timer.stop() # detengo el timer
                 MiTimer.hayUnCronoActivo = False
@@ -447,32 +458,32 @@ class MiTimer(QWidget):
                 self.icon4.addPixmap(QtGui.QPixmap(":/miprefijo/images/continue.ico"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
                 self.botonIniciar.setText("Continue")
                 self.botonIniciar.setIcon(self.icon4)        
-                self.miDisplay.setStyleSheet("QLCDNumber {color: green;}")
-                self.miSegundoDisplay.setStyleSheet("QLCDNumber {color: green;}") #########################
+                # self.miDisplay.setStyleSheet("QLCDNumber {color: green;}")
+                self.miSegundoDisplay.setStyleSheet("QLCDNumber {color: green;}")
                 # al hacer una pausa, hay que guardar los segundos transcurridos hasta este momento para añadirselos al reanudar el crono
                 self.tiempoActual2Fin = datetime.now() ##################
                 self.segundosAcumulado += (self.tiempoActual2Fin - self.tiempoActual2Ini).seconds ####################
                 self.botonParar.setEnabled(True) # deshabilitamos el botón Reset  
-                print("ini: ", str(self.tiempoActual2Ini))
-                print("fin: ", str(self.tiempoActual2Fin))
-                print("acum seg: ", str(self.segundosAcumulado))
-                print("----------------------------")
+                # print("ini: ", str(self.tiempoActual2Ini))
+                # print("fin: ", str(self.tiempoActual2Fin))
+                # print("acum seg: ", str(self.segundosAcumulado))
+                # print("----------------------------")
 
-                print("CRONOS ACTIVOS: ", str(MiTimer.numCronosActivos))
-                print("")
+                # print("CRONOS ACTIVOS: ", str(MiTimer.numCronosActivos))
+                # print("")
             else: # self.botonIniciar.text() == Continue":
                 self.timer.start(1000) # reanudo el Timer que estaba en pausa
                 MiTimer.hayUnCronoActivo = True
                 self.tiempoActual2Ini = datetime.now()
-                self.miDisplay.setStyleSheet("QLCDNumber {color: red;}")
+                # self.miDisplay.setStyleSheet("QLCDNumber {color: red;}")
                 self.miSegundoDisplay.setStyleSheet("QLCDNumber {color: red;}") ###############################
                 self.icon3 = QtGui.QIcon()
                 self.icon3.addPixmap(QtGui.QPixmap(":/miprefijo/images/pause.ico"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
                 self.botonIniciar.setText("Pause")
                 self.botonIniciar.setIcon(self.icon3)
                 self.botonParar.setEnabled(False) # habilitamos el botón Reset    
-                print("CRONOS ACTIVOS: ", str(MiTimer.numCronosActivos)), 
-                print("")
+                # print("CRONOS ACTIVOS: ", str(MiTimer.numCronosActivos)), 
+                # print("")
         else:
             QMessageBox.about(self, "Información", "No se puede activar más de un Crono a la vez." \
                                 + "\nPuedes activar esta opción en la pantalla principal.")
@@ -495,11 +506,11 @@ class MiTimer(QWidget):
         if MiTimer.numCronosActivos < 0:
             MiTimer.numCronosActivos = 0
         
-        print("CRONOS ACTIVOS: ", str(MiTimer.numCronosActivos)), 
-        print("")
+        # print("CRONOS ACTIVOS: ", str(MiTimer.numCronosActivos)), 
+        # print("")
 
         self.timer.stop()
-        self.miDisplay.setStyleSheet("QLCDNumber {color: black;}")
+        # self.miDisplay.setStyleSheet("QLCDNumber {color: black;}")
         self.miSegundoDisplay.setStyleSheet("QLCDNumber {color: black;}") ###################################
         
         # Ya no: todo lo de abajo, porque siempre que se pulse el Reset es porque viene de una Pausa (en los otros momentos está deshabilitado)
@@ -514,23 +525,23 @@ class MiTimer(QWidget):
         #     pass
 
         # Presentamos los datos de la medición del tiempo y preguntamos si los quiere guardar para retomarlos en otra sesión.
-        cadena = str(self.tiempoActual.hour()) + ":" \
-                + str(self.tiempoActual.minute()) + ":"  \
-                + str(self.tiempoActual.second())
+        # cadena = str(self.tiempoActual.hour()) + ":" \
+        #         + str(self.tiempoActual.minute()) + ":"  \
+        #         + str(self.tiempoActual.second())
         cadena2 = self.seconds_time_to_human_string(self.segundosAcumulado)
         # #QMessageBox.about(self, "Información", cadena)
+        # Preguntamos si se desea guardar el estado actual del crono para un uso posterior.
         buttonReply = QMessageBox.question(self, 'Guardar Crono Actual', "¿Quieres guardar el estado de este Crono?:\n" 
-                                             + cadena + "\n" + cadena2, QMessageBox.Yes | QMessageBox.No, QMessageBox.Yes)
-        # if buttonReply == QMessageBox.Yes:
-        #     pass
-        # else:
-        #     pass
-        print("Cadena: ", cadena)
-        print("Cadena2: ", cadena2)
+                                             + cadena2, QMessageBox.Yes | QMessageBox.No, QMessageBox.Yes)
+        if buttonReply == QMessageBox.Yes:
+            # guardamos en BD. el estado de este crono.
+            self.GuardarEstadoCrono(cadena2)
+        # print("Cadena: ", cadena)
+        # print("Cadena2: ", cadena2)
         
         # Ponemos todo a cero
-        self.tiempoActual = QtCore.QTime(0,0,0)
-        self.miDisplay.display(self.tiempoActual.toString('hh:mm:ss'))
+        # self.tiempoActual = QtCore.QTime(0,0,0)
+        # self.miDisplay.display(self.tiempoActual.toString('hh:mm:ss'))
         self.segundosAcumulado = 0
         self.miSegundoDisplay.display(self.seconds_time_to_human_string(self.segundosAcumulado)) #####################################
         
@@ -541,7 +552,7 @@ class MiTimer(QWidget):
         self.icon1 = QtGui.QIcon()
         self.icon1.addPixmap(QtGui.QPixmap(":/miprefijo/images/play.ico"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
 
-        self.miDisplay.setStyleSheet("QLCDNumber {color: black;}")
+        # self.miDisplay.setStyleSheet("QLCDNumber {color: black;}")
         self.miSegundoDisplay.setStyleSheet("QLCDNumber {color: black;}") ###########################
 
         # si hay más de un crono activo, deshabilito el check (para evitar inconsistencias)
@@ -550,32 +561,73 @@ class MiTimer(QWidget):
         else:
             w.ui.checkBoxMultiCrono.setEnabled(True)
     
-    def GuardarEstadoCrono(self):
-        pass
+    def GuardarEstadoCrono(self, elCrono):
+        print("ID: ", self.IDTarea.text())
+        print("Estado: ", elCrono)
+        print("")
+        try:
+            # modificamos en la BD.
+            conn = sqlite3.connect(BaseDeDatos)
+            cur = conn.cursor()
+            miQuery = "UPDATE Tareas SET Crono = '" + elCrono + "' WHERE IDTarea = " + self.IDTarea.text()
+            cur.execute(miQuery)
+            conn.commit()
+            # ahora borramos todo el contenido del listWidget para volver a cargarlo con los datos actualizados
+            w.ui.listWidgetTareas.clear()
+            w.MostrarTabla("SELECT * FROM Tareas ORDER BY FechaAlta DESC, IDTarea DESC;")
+            w.ui.statusbar.showMessage("Crono guardado", 5000)
+        except Error as e:
+            self.ui.statusbar.showMessage(str(e), 10000)
+        finally:
+            conn.close()
 
     def showlcd(self):
+        # Esto es lo que se ejecuta con cada evento del TimeOut del Timer (1 seg.)
         # self.Ahora = datetime.now()
         # difSegundos = self.Ahora - self.horaInicio
         # segundos = datetime.strptime(str(difSegundos.seconds),"%S")
         # textoDisplay = datetime.strftime(segundos, "%H:%M:%S")
-        self.tiempoActual = self.tiempoActual.addSecs(1)
-        self.miDisplay.display(self.tiempoActual.toString('hh:mm:ss'))
-        self.tiempoActual2Fin = datetime.now() ##############################
+        # self.tiempoActual = self.tiempoActual.addSecs(1)
+        # self.miDisplay.display(self.tiempoActual.toString('hh:mm:ss'))
+        self.tiempoActual2Fin = datetime.now()
         #self.totalSegundos = (self.tiempoActual2Fin - self.tiempoActual2Ini 
         #                    + timedelta(seconds=self.segundosAcumulado)).total_seconds() ############################
         self.totalSegundos = (self.tiempoActual2Fin - self.tiempoActual2Ini).seconds + self.segundosAcumulado ############################
-
-        self.miSegundoDisplay.display(self.seconds_time_to_human_string(self.totalSegundos)) #####################################
-        print("INI: ", str(self.tiempoActual2Ini))
-        print("FIN: ", str(self.tiempoActual2Fin))
-        print("ACUM SEG: ", str(self.segundosAcumulado))
-        print("----------------------------")
+        self.miSegundoDisplay.display(self.seconds_time_to_human_string(self.totalSegundos))
+        # print("INI: ", str(self.tiempoActual2Ini))
+        # print("FIN: ", str(self.tiempoActual2Fin))
+        # print("ACUM SEG: ", str(self.segundosAcumulado))
+        # print("----------------------------")
         #text2 = Ahora.toString('hh:mm:ss')
         # hay que poner el lcdNumber.digitCount = 8
         #self.ui.lcdNumber.display(textoDisplay) 
         #app.processEvents() # just this one line allows display of 'i'
         #self.ui.label.setText(textoDisplay)
-    
+
+    def ConvertirCadena_a_Segundos(self, cadena):
+        # Convertimos una cadena de fecha/hora a segundos
+        # Este procedimiento es necesario para poder restaurar un crono guardado de una vez anterior (es llamado desde el botón Start)
+        # Lo primero que hay que saber es la longitud de la cadena 
+        # Puede ser una cadena normal '00:00:00' o la ampliada '00d 00:00:00' que también muestra los días
+        segundosDevolver = 0
+        Dias = 0
+        if len(cadena) != 8: # cadena por defecto '00:00:00', # cadena extendida que incluye días '27D 00:00:00'
+            Dias = Horas = int(cadena[-12:-10])
+        Horas = int(cadena[-8:-6])
+        Minutos = int(cadena[-5:-3])
+        Segundos = int(cadena[-2:])
+
+        # hh = Dias * 86400
+        # mm = Horas * 3600
+        # ss = Minutos * 60
+
+        #***CONTINUAR AQUI:
+        #*** ¡¡¡ DA DISTINTO para el caso de '30D 23:59:50' (segundosDevolver2 da 50 seg. menos) !!! ***
+        segundosDevolver = (Dias * 86400) + (Horas * 3600) + (Minutos * 60) + Segundos
+        # segundosDevolver2 = hh + mm + ss
+
+        return float(segundosDevolver)
+
     def seconds_time_to_human_string(self, time_on_seconds=0):
         """Calculate time, with precision from seconds to days."""
         minutes, seconds = divmod(int(time_on_seconds), 60)
@@ -594,7 +646,6 @@ class MiTimer(QWidget):
             human_time_string += ":00"
         human_time_string += ":%02d" % seconds
         return human_time_string
-
     
 
 

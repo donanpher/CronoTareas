@@ -15,10 +15,6 @@ Abril 2020 (durante la cuarentena del coronavirus COVID-19)
 	La aplicación funciona correctamente, dándole buen uso, pero tiene inconsistencias a la hora de marcar/desmarcar el checkbox estando activos uno o varios de los cronos...(pendiente de corregir)
 	
 	- [x] Se crea una opción para permitir, o no, el funcionamiento de varios cronos simultaneos (por defecto lógicamente no,  porque "no se pueden hacer varias tareas simultanemente" pero por si se quiere, se habilita la opción.)
-	- [ ] Guardar estado de todos los cronos, fechas/horas de inicio/fin, etc. en BD.
-	- [ ] Fix!: GuardarEstadoTareas -> Si está en marcha un crono y se modifica la tarea, este se restaura.
-	- [ ] Deshabilitar botón de Modificar durante el funcionamiento de su cron
-	- [ ] Desarrollar todo el tema de los Informes.
 
 ### 15-04-2020 [v.1.1] Nuevas características y corrección de errores
 	- [x] Si durante el funcionamiento de varios cronos se deschecka el checkBox, este ya no surte efecto.
@@ -40,8 +36,17 @@ Abril 2020 (durante la cuarentena del coronavirus COVID-19)
 	- [x] Se añade un label con el Total de Tareas
 	- [x] Hacer la ventana de la aplicación fija en cuanto a tamaño, que no se pueda expandir ni contraer. También centrarla en el escritorio.
 	- [x] Añadir ToolTips...  al botón Reset y al botón Recargar lista
-	- [ ] Deshabilitar botones Modificar y Eliminar durante el funcionamiento de un crono o mejor, guardar estado, recargar y continuar.
-	- [ ] Si se pulsa botón Añadir durante un crono, hay que guardar estado de ese crono y restaurarlo, pues después de un alta siempre hay una recarga.
-	- [ ] Limpiar todo el código con restos del LCDDisplay que no uso.
 
+### 17-04-2020 [v.1.3] Nuevas características y corrección de errores
+	Versión totalmente operativa y funcional.
+	Ya definitivamente se usa DateTime para controlar el tiempo
+	Así mismo, también se guarda y se restaura el estado del Crono (al pulsar Reset y responder 'Sí' a guardar)
+	- [x] Limpiar todo el código con restos del LCDDisplay que no uso. (sólo lo #comento, no lo elimino todavía hasta la v.1.4)
+	- [X] Guardar estado de todos los cronos, fechas/horas de inicio/fin, etc. en BD.
+	- [ ] Buscar el límite del Display, por lo pronto representa sin problemas '99D 23:59:59' incluso sigue sumando sin contratiempo.
+	- [ ] Deshabilitar botones Modificar y Eliminar durante el funcionamiento de un crono o mejor, guardar estado, recargar y continuar.
+	- [ ] Fix!: GuardarEstadoTareas -> Si está en marcha un crono y se modifica la tarea, este se restaura.
+	- [ ] Deshabilitar botón de Modificar durante el funcionamiento de su cron
+	- [ ] Si se pulsa botón Añadir durante un crono, hay que guardar el estado y restaurarlo, pues después de un alta siempre hay una recarga.
+	- [ ] Desarrollar todo el tema de los Informes.
 

@@ -148,7 +148,7 @@ class Ui_MainWindow(object):
         self.labelCronoTareas_5.setFont(font)
         self.labelCronoTareas_5.setObjectName("labelCronoTareas_5")
         self.labelCronoTareas_6 = QtWidgets.QLabel(self.tab_1)
-        self.labelCronoTareas_6.setGeometry(QtCore.QRect(223, 24, 50, 20))
+        self.labelCronoTareas_6.setGeometry(QtCore.QRect(177, 24, 50, 20))
         font = QtGui.QFont()
         font.setFamily("Gallaecia Castelo")
         font.setPointSize(10)
@@ -203,7 +203,7 @@ class Ui_MainWindow(object):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "Crono Tareas"))
         self.labelCronoTareas.setText(_translate("MainWindow", "Crono Tareas"))
-        self.label.setText(_translate("MainWindow", "v.1.2"))
+        self.label.setText(_translate("MainWindow", "v.1.3"))
         self.labelCronoTareas_2.setText(_translate("MainWindow", "Cronometra la duración de tus Tareas y genera informes resumen de las mismas"))
         self.labelCronoTareas_3.setText(_translate("MainWindow", "Añade nuevas tareas, selecciona una fila para modificar o eliminar"))
         self.pushButtonAgregarTarea.setText(_translate("MainWindow", "&Añadir"))
