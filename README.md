@@ -1,15 +1,25 @@
 # CronoTareas
 Sencilla aplicación para llevar el control del tiempo de tareas.  
-Se pueden controlar tantas tareas como se quiera. Permite tener varios cronómetros activos al mismo tiempo. Esta característica también se puede desactivar para que esté activa sólamente una tarea a la vez.
-Hecha en Python 3.6.7 + PyQt5
+Hecha en Python 3.6.7 + PyQt5  
+Versión para Linux, testada en Ubuntu Budgie 18.04.4 LTS
   
 Fernando Souto (donanpher@gmail.com)  
 A Coruña (Galicia), Spain  
-Abril 2020 (durante la cuarentena del coronavirus COVID-19)  
+Abril 2020 (durante la cuarentena del #Coronavirus #SARS-CoV-2 #Covid-19)  
 
 ---
-
-<H2>Características</H2>
+![](./images/Screenshot_CronoTareas.png)
+---
+## Descripción General
+Aplicación para llevar un control de tiempo de distintas tareas.  
+Se pueden añadir tantas tareas como se quiera, iniciarlas, pausarlas o detenerlas. Al detenerlas se le pregunta al usuario si desea guardar la tarea para continuarla en otra ocasión o simplemente deternerla definitivamente y ponerla a cero.  
+Permite tener varios cronómetros activos al mismo tiempo. Esta característica también se puede desactivar para que esté activa sólamente una tarea a la vez.
+Existen 2 campos para identificar cada tarea:  
+	- *Nombre Tarea*: Normalmente está pensado para describir la tarea específica que se quiere controlar.  
+	- *Tag*			: Su función es más general, por ejemplo, el nombre del proyecto, el cliente, etc.  
+Es el usuario el que determinará la manera que más se adapte a sus necesidades.  
+---
+## Versiones
 
 ### 14-04-2020 [v.1.0] Funcionalidad básica
 	La aplicación funciona correctamente, dándole buen uso, pero tiene inconsistencias a la hora de marcar/desmarcar el checkbox estando activos uno o varios de los cronos...(pendiente de corregir)
@@ -37,13 +47,25 @@ Abril 2020 (durante la cuarentena del coronavirus COVID-19)
 	- [x] Hacer la ventana de la aplicación fija en cuanto a tamaño, que no se pueda expandir ni contraer. También centrarla en el escritorio.
 	- [x] Añadir ToolTips...  al botón Reset y al botón Recargar lista
 
-### 17-04-2020 [v.1.3] Nuevas características y corrección de errores
+### 16-04-2020 [v.1.3] Nuevas características y corrección de errores
 	Versión totalmente operativa y funcional.
 	Ya definitivamente se usa DateTime para controlar el tiempo
 	Así mismo, también se guarda y se restaura el estado del Crono (al pulsar Reset y responder 'Sí' a guardar)
 	- [x] Limpiar todo el código con restos del LCDDisplay que no uso. (sólo lo #comento, no lo elimino todavía hasta la v.1.4)
 	- [X] Guardar estado de todos los cronos, fechas/horas de inicio/fin, etc. en BD.
-	- [ ] Buscar el límite del Display, por lo pronto representa sin problemas '99D 23:59:59' incluso sigue sumando sin contratiempo.
+
+### 17-04-2020 [v.1.4] Nuevas características y corrección de errores
+	- [x] Botón Modificar ahora también permite modificar el Crono.
+	- [x] Pongo el límite del tamaño de cada cada campo, en los LineEdit que se usan para modificar una tarea.
+	- [x] Al hacer click en el logo, muestro un diálogo de créditos.
+	- [x] Buscar el límite del Display, por lo pronto representa sin problemas '99D 23:59:59' incluso sigue sumando sin contratiempo.
+			Eso supone un total de 8.639.999 seg. que, si sobrepasa eso, le muestro una advertencia.
+	- [x] Ancheo la ventana para que quepa mejor todo.
+	- [x] Cuando se quiere modificar una tarea, le pongo una máscara al line edit del crono, y esta máscara incluye, aunque sea, cero diás.
+			Esto es así para permitir modificar una tarea de sólo horas añadiéndole días.
+	- [x] Descarto el tema de la máscara y pongo un SpinBox (para los días) + un TimeEdit (para las horas)
+	- [x] Botón Buscar para filtrar por Tarea o Tag...podría también filtrarse por Fecha Alta, pero no la estoy mostrarndo en el list...
+	- [ ] Si hay un crono en marcha y se busca algo, el crono desaparece....
 	- [ ] Deshabilitar botones Modificar y Eliminar durante el funcionamiento de un crono o mejor, guardar estado, recargar y continuar.
 	- [ ] Fix!: GuardarEstadoTareas -> Si está en marcha un crono y se modifica la tarea, este se restaura.
 	- [ ] Deshabilitar botón de Modificar durante el funcionamiento de su cron
