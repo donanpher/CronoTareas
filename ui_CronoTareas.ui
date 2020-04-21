@@ -80,7 +80,7 @@
      </font>
     </property>
     <property name="text">
-     <string>v.1.4</string>
+     <string>v.1.5</string>
     </property>
     <property name="alignment">
      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -443,6 +443,30 @@
       <property name="icon">
        <iconset resource="mirecurso.qrc">
         <normaloff>:/miprefijo/images/buscar.ico</normaloff>:/miprefijo/images/buscar.ico</iconset>
+      </property>
+     </widget>
+     <widget class="QLabel" name="labelSumaCronos">
+      <property name="geometry">
+       <rect>
+        <x>445</x>
+        <y>273</y>
+        <width>250</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <family>Gallaecia Castelo</family>
+        <pointsize>10</pointsize>
+        <weight>50</weight>
+        <bold>false</bold>
+       </font>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
       </property>
      </widget>
     </widget>

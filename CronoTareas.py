@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-#  CronoTareas, v.1.4
+#  CronoTareas, v.1.5
 #  Sencilla aplicación para cronometrar tiempos asociados a tareas.
 #  Creada usando Python 3.6.7 + PyQt5
 #  
@@ -56,8 +56,8 @@ class AppWindow(QMainWindow):
         self.ui.statusbar.showMessage("Modo: Mono Crono")
         # conexión de los botones con sus respectivos slots
         self.ui.pushButtonAgregarTarea.clicked.connect(self.AgregarTarea)
-        self.ui.pushButtonEliminarTarea.clicked.connect(self.EliminarTarea)
-        #self.ui.pushButtonEliminarTarea.clicked.connect(self.GuardarEstadoTareas) # PROVISIONAL
+        #self.ui.pushButtonEliminarTarea.clicked.connect(self.EliminarTarea)
+        self.ui.pushButtonEliminarTarea.clicked.connect(self.GuardarEstadoTareas) # PROVISIONAL
         self.ui.pushButtonModificarTarea.clicked.connect(self.ModificarTarea)
         self.ui.pushButtonRecargar.clicked.connect(self.Recargar)
         self.ui.listWidgetTareas.itemDoubleClicked.connect(self.ModificarTarea)
@@ -70,6 +70,7 @@ class AppWindow(QMainWindow):
         #self.ui.labelTotalTareas.setText("Total Tareas: " + str(self.ui.listWidgetTareas.count()))
 
     def CronosSimultaneos(self):
+        # Esto muestra en la barra de estado el modo en el que nos encontramos: monoCrono (por defecto) o multiCrono (seleccionable)
         self.PermitirCronosSimultaneos = not self.PermitirCronosSimultaneos
         if self.PermitirCronosSimultaneos:
             self.ui.statusbar.showMessage("Modo: Multi Crono")
@@ -101,9 +102,22 @@ class AppWindow(QMainWindow):
                             VALUES ('" + modifTarea + "', '" + modifTag + "', '" + self.strAhora + "', '" + modifDias + modifHora + "')"
                 cur.execute(miQuery)
                 conn.commit()
-                # ahora borramos todo el contenido del listWidget para volver a cargarlo con los datos actualizados
-                self.ui.listWidgetTareas.clear()
-                self.MostrarTabla("SELECT * FROM Tareas ORDER BY FechaAlta DESC, IDTarea DESC;")
+                # ahora insertamos un item en la lista con esta alta, pero antes necesitamos saber cuál es el ID asignado.
+                miQuery = "SELECT Max(IDTarea) FROM Tareas"
+                cur.execute(miQuery)
+                elRegistro = cur.fetchone()
+                elID = elRegistro[0]              
+                miItem = QListWidgetItem()
+                self.ui.listWidgetTareas.insertItem(0, miItem) # inserta el item en primer lugar de la lista
+                miCustomWidget = MiTimer(str(elID), modifTarea, modifTag, modifDias + modifHora, modifDias + modifHora)
+                miItem.setSizeHint(miCustomWidget.sizeHint())
+                self.ui.listWidgetTareas.addItem(miItem) # añade el item al final de la lista
+                self.ui.listWidgetTareas.setItemWidget(miItem, miCustomWidget)
+                self.ui.listWidgetTareas.setStyleSheet( "QListWidget::item { border-bottom: 1px solid black; }" ) # esta es una línea que separa líneas
+                self.show()
+                # ya no: ahora borramos todo el contenido del listWidget para volver a cargarlo con los datos actualizados
+                # self.ui.listWidgetTareas.clear()
+                # self.MostrarTabla("SELECT * FROM Tareas ORDER BY FechaAlta DESC, IDTarea DESC;")
                 self.ui.statusbar.showMessage("Se ha añadido una nueva Tarea", 5000)
             except Error as e:
                 self.ui.statusbar.showMessage(str(e), 10000)
@@ -113,6 +127,7 @@ class AppWindow(QMainWindow):
             self.ui.statusbar.showMessage("Añadir Tarea nueva cancelado", 5000)
             
     def ModificarTarea(self):
+        # Modificar la tarea seleccionada, bien dándole al botón modificar o haciendo doble-click en la fila
         filaModificar = self.ui.listWidgetTareas.currentRow()
 
         if filaModificar == -1:
@@ -121,56 +136,72 @@ class AppWindow(QMainWindow):
         else:
             ItemModificar = self.ui.listWidgetTareas.currentItem()
             miWidget = self.ui.listWidgetTareas.itemWidget(ItemModificar)
-            # estos son los datos de la fila seleccionada actualmente
-            elID = miWidget.IDTarea.text()
-            laTarea = miWidget.NombreTarea.text()
-            elTag = miWidget.Tag.text()
-            elCrono = miWidget.miCrono
-            # llamamos al diálogo para captar los datos con la modificación
-            dlg = CustomDialog(self)
-            dlg.miLineEditTareaDialog.setText(laTarea)
-            dlg.miLineEditTagDialog.setText(elTag)
-            # El crono por defecto siempre va a incluir días, aunque sean cero.
-            # esto lo hago así porque si el crono sólo incluye hora y deseamos añadir días, no podríamos hacerlo
-            if len(elCrono) == 8:
-                losDias = 0
-                laHora = elCrono
+            # Para poder modificar una fila, no puede estar el crono activo
+            if miWidget.botonIniciar.text() != "Start":
+                QMessageBox.about(self, "Información", "Para poder modificar una Tarea, el Crono no puede estar activo. \
+                                                        \nPulsa Stop, guarda el Crono, modifica Tarea y vuelve a iniciarla.")
             else:
-                losDias = int(elCrono[:2])
-                laHora = elCrono[-8:]
-            dlg.miSpinDias.setValue(losDias)
-            horaQTime = QtCore.QTime(int(laHora[:2]),int(laHora[3:5]),int(laHora[6:])) 
-            dlg.miTimeEditHoras.setTime(horaQTime)
+                # estos son los datos de la fila seleccionada actualmente
+                elID = miWidget.IDTarea.text()
+                laTarea = miWidget.NombreTarea.text()
+                elTag = miWidget.Tag.text()
+                elCrono = miWidget.labelCrono.text()
+                # llamamos al diálogo para captar los datos con la modificación
+                dlg = CustomDialog(self)
+                dlg.miLineEditTareaDialog.setText(laTarea)
+                dlg.miLineEditTagDialog.setText(elTag)
+                # El crono por defecto siempre va a incluir días, aunque sean cero.
+                # esto lo hago así porque si el crono sólo incluye hora y deseamos añadir días, no podríamos hacerlo
+                if len(elCrono) == 8:
+                    losDias = 0
+                    laHora = elCrono
+                else:
+                    losDias = int(elCrono[:2])
+                    laHora = elCrono[-8:]
+                dlg.miSpinDias.setValue(losDias)
+                horaQTime = QtCore.QTime(int(laHora[:2]),int(laHora[3:5]),int(laHora[6:])) 
+                dlg.miTimeEditHoras.setTime(horaQTime)
 
-            if dlg.exec_():
-                modifTarea = dlg.miLineEditTareaDialog.text()
-                modifTag = dlg.miLineEditTagDialog.text()
-                modifDias = str(dlg.miSpinDias.value())
-                modifHora = dlg.miTimeEditHoras.time().toString()
-                if len(modifDias) == 1: # si el día sólo tiene un dígito, le añadimos el cero delante
-                    modifDias = "0" + modifDias
-                modifDias = modifDias + "D " # le ponemos el formato nuestro que estamos usando en el display
+                if dlg.exec_():
+                    modifTarea = dlg.miLineEditTareaDialog.text()
+                    modifTag = dlg.miLineEditTagDialog.text()
+                    modifDias = str(dlg.miSpinDias.value())
+                    modifHora = dlg.miTimeEditHoras.time().toString()
+                    if len(modifDias) == 1: # si el día sólo tiene un dígito, le añadimos el cero delante
+                        modifDias = "0" + modifDias
+                    modifDias = modifDias + "D " # le ponemos el formato nuestro que estamos usando en el display
 
-                try:
-                    # modificamos en la BD.
-                    conn = sqlite3.connect(BaseDeDatos)
-                    cur = conn.cursor()
-                    miQuery = "UPDATE Tareas SET NombreTarea = '" \
-                            + modifTarea + "', Tag = '" + modifTag + "', Crono = '" + modifDias + modifHora \
-                            + "' WHERE IDTarea = " + elID
-                    cur.execute(miQuery)
-                    conn.commit()
-                    # ahora borramos todo el contenido del listWidget para volver a cargarlo con los datos actualizados
-                    self.ui.listWidgetTareas.clear()
-                    self.MostrarTabla("SELECT * FROM Tareas ORDER BY FechaAlta DESC, IDTarea DESC;")
-                    self.ui.statusbar.showMessage("Tarea modificada", 5000)
-                except Error as e:
-                    self.ui.statusbar.showMessage(str(e), 10000)
-                finally:
-                    conn.close()
-            else:
-                self.ui.statusbar.showMessage("Modificar Tarea Cancelado", 5000)
-                #print("Ha pulsado Cancel!")
+                    try:
+                        # modificamos en la BD.
+                        conn = sqlite3.connect(BaseDeDatos)
+                        cur = conn.cursor()
+                        miQuery = "UPDATE Tareas SET NombreTarea = '" \
+                                + modifTarea + "', Tag = '" + modifTag + "', Crono = '" + modifDias + modifHora \
+                                + "' WHERE IDTarea = " + elID
+                        cur.execute(miQuery)
+                        conn.commit()
+                        # ahora borramos todo el contenido del listWidget para volver a cargarlo con los datos actualizados
+                        # ***CONTINUAR AQUI: no, se debe de guardar el estado actual de cosas y sólo modificar lo que se ha tocado.
+                        ItemModificar = self.ui.listWidgetTareas.currentItem()
+                        miWidget = self.ui.listWidgetTareas.itemWidget(ItemModificar)
+                        # estos son los datos de la fila seleccionada actualmente
+                        elID = miWidget.IDTarea.text()
+                        miWidget.NombreTarea.setText(modifTarea)
+                        miWidget.Tag.setText(modifTag)
+                        miWidget.miCrono = modifDias + modifHora
+                        miWidget.miSegundoDisplay.display(modifDias + modifHora)
+                        miWidget.labelCrono.setText(modifDias + modifHora)
+
+                        #self.ui.listWidgetTareas.clear()
+                        #self.MostrarTabla("SELECT * FROM Tareas ORDER BY FechaAlta DESC, IDTarea DESC;")
+                        self.ui.statusbar.showMessage("Tarea modificada", 5000)
+                    except Error as e:
+                        self.ui.statusbar.showMessage(str(e), 10000)
+                    finally:
+                        conn.close()
+                else:
+                    self.ui.statusbar.showMessage("Modificar Tarea Cancelado", 5000)
+                    #print("Ha pulsado Cancel!")
     
     def EliminarTarea(self):
         filaModificar = self.ui.listWidgetTareas.currentRow()
@@ -207,73 +238,69 @@ class AppWindow(QMainWindow):
                 self.ui.statusbar.showMessage("Eliminar Tarea Cancelado", 5000)
 
     def BuscarTareas(self):
-        # llamamos al diálogo para captar los datos de la búsqueda
-        dlg = CustomDialogBuscar(self)
-        if dlg.exec_():
-            campoDondeBuscar = dlg.miComboCampos.itemText(dlg.miComboCampos.currentIndex())
-            if campoDondeBuscar == "Tarea":
-                campoDondeBuscar = "NombreTarea"
-            queBuscar = dlg.miLineEditBuscar.text()
-            try:
-                conn = sqlite3.connect(BaseDeDatos)
-                cur = conn.cursor()
-                miQuery = "SELECT * FROM Tareas WHERE " + campoDondeBuscar + " LIKE '%" + queBuscar + "%' ORDER BY FechaAlta DESC, IDTarea DESC;"
-                cur.execute(miQuery)
-                registros = cur.fetchall()
-                totalReg = len(registros) # total de registros de la query
-                if totalReg == 0:
-                    QMessageBox.about(self, "Información", "No se han encontrado Tareas coincidentes.")
-                    self.ui.statusbar.showMessage("No hay Tareas con los criterios de busqueda suministrados.", 5000)
-                else:
-                    self.ui.statusbar.showMessage("Registros encontrados: " + str(totalReg), 5000)
-            except Error as e:
-                self.ui.statusbar.showMessage(str(e), 10000)
-            finally:
-                conn.close()
-            
-            # no me deja ejecutar esta query, aun estando cerrada la conexión: "sqlite3.Warning: You can only execute one statement at a time."
-            # ya sé porque era: tenía abierto el SQLite Studio.
-            if totalReg > 0:
-                self.ui.listWidgetTareas.clear()
-                self.MostrarTabla(miQuery)
-
+        # Si hay un crono activo, no dejamos buscar porque al hacerlo se aplica un filtro a la lista y esta se recarga.
+        if MiTimer.numCronosActivos > 0:
+            QMessageBox.about(self, "Información", "No se pueden hacer búsquedas mientras haya un Crono activo. Detén Cronos (Stop) antes de hacer una búsqueda.")
         else:
-            self.ui.statusbar.showMessage("Buscar Tarea Cancelado", 5000)
+            # llamamos al diálogo para captar los datos de la búsqueda
+            dlg = CustomDialogBuscar(self)
+            if dlg.exec_():
+                campoDondeBuscar = dlg.miComboCampos.itemText(dlg.miComboCampos.currentIndex())
+                if campoDondeBuscar == "Tarea":
+                    campoDondeBuscar = "NombreTarea"
+                queBuscar = dlg.miLineEditBuscar.text()
+                try:
+                    conn = sqlite3.connect(BaseDeDatos)
+                    cur = conn.cursor()
+                    miQuery = "SELECT * FROM Tareas WHERE " + campoDondeBuscar + " LIKE '%" + queBuscar + "%' ORDER BY FechaAlta DESC, IDTarea DESC;"
+                    cur.execute(miQuery)
+                    registros = cur.fetchall()
+                    totalReg = len(registros) # total de registros de la query
+                    if totalReg == 0:
+                        QMessageBox.about(self, "Información", "No se han encontrado Tareas coincidentes.")
+                        self.ui.statusbar.showMessage("No hay Tareas con los criterios de busqueda suministrados.", 5000)
+                    else:
+                        self.ui.statusbar.showMessage("Registros encontrados: " + str(totalReg), 5000)
+                except Error as e:
+                    self.ui.statusbar.showMessage(str(e), 10000)
+                finally:
+                    conn.close()
+                
+                # no me deja ejecutar esta query, aun estando cerrada la conexión: "sqlite3.Warning: You can only execute one statement at a time."
+                # ya sé porque era: tenía abierto el SQLite Studio.
+                if totalReg > 0:
+                    self.ui.listWidgetTareas.clear()
+                    self.MostrarTabla(miQuery)
 
+            else:
+                self.ui.statusbar.showMessage("Buscar Tarea Cancelado", 5000)
 
     def GuardarEstadoTareas(self):
         # Cada vez que se hace un alta/modificación/eliminación, se hace un .clear (se vacía el listWidget) y se vuelve a cargar desde la BD.
         # Si hay cronos activos, al hacer lo anterior, se pierde la información del crono actual
-        # Por todo lo anterior, hay que guardar el estado actual de todos los cronos antes de recargar la lista.
+        # Por todo esto, hay que guardar el estado actual de todos los cronos antes de recargar la lista.
         totalFilas = self.ui.listWidgetTareas.count()
-        # for elemento in range(totalFilas):
-        #     jaja = self.ui.listWidgetTareas.item(elemento)
-        print("a ver")
-            #print(jaja.IDTarea.text())
-        self.ui.listWidgetTareas.itemWidget.setCurrentRow(2)
-            # ItemModificar = self.ui.listWidgetTareas.currentItem()
-            # miWidget = self.ui.listWidgetTareas.itemWidget(ItemModificar)
-            # elID = miWidget.IDTarea.text()
-            # laTarea = miWidget.NombreTarea.text()
-            # elTag = miWidget.Tag.text()
-            # print(elID, laTarea)
+        for n in range(0, totalFilas):
+            self.ui.listWidgetTareas.setCurrentRow(n)
+            ItemModificar = self.ui.listWidgetTareas.currentItem()
+            miWidget = self.ui.listWidgetTareas.itemWidget(ItemModificar)
+            # estos son los datos de la fila seleccionada actualmente
+            elID = miWidget.IDTarea.text()
+            elCrono = miWidget.miCrono
+            print("elID: ", elID)
+            print("elCrono: ", str(elCrono)) # no me muestra el valor del crono pausado
+            print("")
 
-        # ItemModificar = self.ui.listWidgetTareas.currentItem()
-        # miWidget = self.ui.listWidgetTareas.itemWidget(ItemModificar)
-        # # estos son los datos de la fila seleccionada actualmente
-        # elID = miWidget.IDTarea.text()
-        # laTarea = miWidget.NombreTarea.text()
-        # elTag = miWidget.Tag.text()
-
-    def AnhadirItem(self, nuevoID, nuevaTarea, nuevoTag, nuevoCrono):
+    def AnhadirItem(self, nuevoID, nuevaTarea, nuevoTag, nuevoCrono, nuevoLabelCrono):
         # Un Item es cada fila de la lista de tareas
         # Este método es llamado por el método MostrarTabla, para ir añadiendo todos los reg. de la BD.
         self.nuevoID = nuevoID
         self.nuevaTarea = nuevaTarea
         self.nuevoTag = nuevoTag
         self.nuevoCrono = nuevoCrono
+        self.nuevoLabelCrono = nuevoLabelCrono
         miItem = QListWidgetItem()
-        miCustomWidget = MiTimer(self.nuevoID, self.nuevaTarea, self.nuevoTag, self.nuevoCrono)
+        miCustomWidget = MiTimer(self.nuevoID, self.nuevaTarea, self.nuevoTag, self.nuevoCrono, self.nuevoLabelCrono)
         miItem.setSizeHint(miCustomWidget.sizeHint())
         self.ui.listWidgetTareas.addItem(miItem) # añade el item al final de la lista
         #self.ui.listWidgetTareas.insertItem(0, miItem) # inserta el item en primer lugar de la lista
@@ -291,16 +318,23 @@ class AppWindow(QMainWindow):
             totalReg = len(registros) # total de registros de la query
             #elf.ui.tableWidgetNotas.setRowCount(totalReg) # dimensionamos el widget en filas
             recNum = 0
-            for registro in registros:
-                self.AnhadirItem(str(registro[0]), registro[1], registro[2], registro[4]) # estos son los campos
+            sumaCronos = 0 # aquí vamos acumulando los segundos de cada crono para después mostrarlos en el label al pié de la lista
+            for registro in registros: # Campos: ID, Tarea, Tag, Crono, LabelCrono
+                self.AnhadirItem(str(registro[0]), registro[1], registro[2], registro[4], registro[4]) # estos son los campos
                 recNum += 1
-
+                sumaCronos += MiTimer.ConvertirCadena_a_Segundos(self, registro[4]) # la función de conversión, está en la clase MiTimer
+            # mostramos la suma de los cronos en el label (previamente convertida a formato humano)
+            self.ui.labelSumaCronos.setText("Suma Cronos: " + MiTimer.seconds_time_to_human_string(self, sumaCronos))
         except Error as e:
             self.ui.statusbar.showMessage(str(e), 10000)
         finally:
             conn.close()
             self.ui.labelTotalTareas.setText("Total Tareas: " + str(self.ui.listWidgetTareas.count()))
-    
+
+    def ActualizarLista(self, miQuery, miCampo):
+        # Es para actualizar el listWidget, sólo para el registro-campo especificado.
+        pass
+
     def Recargar(self):
         # Vacía y vuelve a cargar la lista de tareas a partir de la BD.
         self.ui.listWidgetTareas.clear()
@@ -450,6 +484,9 @@ class CustomDialogBuscar(QDialog):
 
 
 class MiTimer(QWidget):
+    # MiTimer es cada uno de los listItems (filas) que hay en el listWidget
+    # A su vez, cada listItem se compone de varios widgets: 
+    # el ID, la Tarea, el Tag, botón Iniciar/Pausar/Continue, botón Reset, el LCDDisplay (Crono) y labelCrono (un duplicado del Crono).
     hayUnCronoActivo = False # para controlar si hay activo algún crono y poder permitir un segundo o no en función del checkbox
     # mismo tema anterior pero para solucionar el tema de que estando desmarcado el check (permitir varios cronos),
     # si se marca el check de no permitir, se descontrola el tema
@@ -457,12 +494,13 @@ class MiTimer(QWidget):
     numCronosActivos = 0 
 
     # esta es la linea (WidgetItem), con la colección de widgets (dentro de un QHBoxLayout), que se pinta dentro de la lista.
-    def __init__(self, miID, miTarea, miTag, miCrono, parent=None):
+    def __init__(self, miID, miTarea, miTag, miCrono, miLabelCrono, parent=None):
         super(MiTimer, self).__init__(parent)
         self.miID = miID
         self.miTarea = miTarea
         self.miTag = miTag
         self.miCrono = miCrono
+        self.miLabelCrono = miLabelCrono
         self.altoWidgets = 25
         self.anchoBotones = 75
         self.haSidoAdvertido = False # esto es para cuando se sobrepasa el límite teórico del Crono, en que muestro una advertencia (ver showlcd())
@@ -473,7 +511,7 @@ class MiTimer(QWidget):
         #self.tiempoFinal = QTime(0,0,0)
         self.timer = QtCore.QTimer(self)
         
-        # QLabels
+        # Widgets del itemWidget (elementos de cada fila de la lista)
         #---------------------------------------------------
         self.IDTarea = QLabel(self.miID)
         self.IDTarea.setFrameShape(QFrame.StyledPanel)
@@ -493,24 +531,31 @@ class MiTimer(QWidget):
         self.botonIniciar.setIcon(self.icon1)        
         self.botonIniciar.clicked.connect(self.IniciarCrono)
         #---------------------------------------------------
+        # Pensé que iba a necesitar Threads, pero parece que no hacen falta
         #t = Thread(target=self.IniciarCrono)
         #t.start()
-        self.botonParar= QPushButton("Reset")
+        self.botonParar= QPushButton(" Stop")
         self.icon2 = QtGui.QIcon()
-        self.icon2.addPixmap(QtGui.QPixmap(":/miprefijo/images/refresh.ico"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.icon2.addPixmap(QtGui.QPixmap(":/miprefijo/images/guardar1.ico"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.botonParar.setIcon(self.icon2)        
         self.botonParar.setFixedWidth(self.anchoBotones)
         self.botonParar.clicked.connect(self.PararCrono)
         self.botonParar.setEnabled(False)
-        self.botonParar.setToolTip('<b>Resetea</b> el Crono y también pregunta si se desea <br><b>Guardar su estado</b>.')
-        ###########################################################################################################################
+        self.botonParar.setToolTip('<b>Para el Crono</b> y también pregunta si se desea <b>Guardar su estado</b>,<br>o Resetearlo.')
+        #---------------------------------------------------
         self.miSegundoDisplay = QLCDNumber()
         self.miSegundoDisplay.setDigitCount(12)
         self.miSegundoDisplay.setSegmentStyle(QtWidgets.QLCDNumber.Flat)
         self.miSegundoDisplay.setFixedWidth(self.anchoBotones + 80)
         self.miSegundoDisplay.setFixedHeight(30)
         self.miSegundoDisplay.display(self.miCrono)
-        ###########################################################################################################################
+        #---------------------------------------------------
+        # Añado un label que va a contener lo mismo que el Crono, pero no va a ser visible.
+        # El motivo es para poder acceder a su valor, porque no consigo acceder al valor del Crono.
+        self.labelCrono = QLabel(self.miLabelCrono)
+        self.labelCrono.setVisible(False) # oculto este label, porque sólo lo tengo para acceder a su información, que es la misma que el crono.
+        #self.labelCrono.setFrameShape(QFrame.StyledPanel)
+        #---------------------------------------------------
         #self.showlcd()
         self.timer.timeout.connect(self.showlcd) # método que se ejecuta con cada Timer
         self.miLayOut = QHBoxLayout()
@@ -519,8 +564,8 @@ class MiTimer(QWidget):
         self.miLayOut.addWidget(self.Tag)
         self.miLayOut.addWidget(self.botonIniciar)
         self.miLayOut.addWidget(self.botonParar)
-        # self.miLayOut.addWidget(self.miDisplay)
         self.miLayOut.addWidget(self.miSegundoDisplay)
+        self.miLayOut.addWidget(self.labelCrono)
         self.setLayout(self.miLayOut)
 
     def IniciarCrono(self):
@@ -554,7 +599,7 @@ class MiTimer(QWidget):
                 self.icon3.addPixmap(QtGui.QPixmap(":/miprefijo/images/pause.ico"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
                 self.botonIniciar.setText("Pause")
                 self.botonIniciar.setIcon(self.icon3)    
-                self.botonParar.setEnabled(False) # deshabilitamos el botón Reset    
+                self.botonParar.setEnabled(False) # deshabilitamos el botón Stop    
             elif self.botonIniciar.text() =="Pause":
                 self.timer.stop() # detengo el timer
                 MiTimer.hayUnCronoActivo = False
@@ -566,7 +611,7 @@ class MiTimer(QWidget):
                 # al hacer una pausa, hay que guardar los segundos transcurridos hasta este momento para añadirselos al reanudar el crono
                 self.tiempoActual2Fin = datetime.now()
                 self.segundosAcumulado += (self.tiempoActual2Fin - self.tiempoActual2Ini).seconds
-                self.botonParar.setEnabled(True) # deshabilitamos el botón Reset  
+                self.botonParar.setEnabled(True) # deshabilitamos el botón Stop  
             else: # self.botonIniciar.text() == Continue":
                 self.timer.start(1000) # reanudo el Timer que estaba en pausa
                 MiTimer.hayUnCronoActivo = True
@@ -577,7 +622,7 @@ class MiTimer(QWidget):
                 self.icon3.addPixmap(QtGui.QPixmap(":/miprefijo/images/pause.ico"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
                 self.botonIniciar.setText("Pause")
                 self.botonIniciar.setIcon(self.icon3)
-                self.botonParar.setEnabled(False) # habilitamos el botón Reset    
+                self.botonParar.setEnabled(False) # habilitamos el botón Stop    
         else:
             QMessageBox.about(self, "Información", "No se puede activar más de un Crono a la vez." \
                                 + "\nPuedes activar esta opción en la pantalla principal.")
@@ -594,7 +639,7 @@ class MiTimer(QWidget):
                 w.ui.checkBoxMultiCrono.setEnabled(True)
 
     def PararCrono(self):
-        # Botón Reset: se pone a cero, pero preguntamos si desea guardar este crono para más adelante
+        # Botón Stop: se pone a cero, pero preguntamos si desea guardar este crono para más adelante
         MiTimer.hayUnCronoActivo = False
         MiTimer.numCronosActivos -= 1
         if MiTimer.numCronosActivos < 0:
@@ -602,22 +647,27 @@ class MiTimer(QWidget):
         
         self.timer.stop()
 
-        self.miSegundoDisplay.setStyleSheet("QLCDNumber {color: black;}") ###################################
+        self.miSegundoDisplay.setStyleSheet("QLCDNumber {color: black;}")
         
         cadena2 = self.seconds_time_to_human_string(self.segundosAcumulado)
         # Preguntamos si se desea guardar el estado actual del crono para un uso posterior.
         buttonReply = QMessageBox.question(self, 'Guardar Crono Actual', "¿Quieres guardar el estado actual de este Crono?:\n" 
                                              + cadena2, QMessageBox.Yes | QMessageBox.No, QMessageBox.Yes)
+        # Si queremos guardar el estado actual para seguir en otra ocasión
         if buttonReply == QMessageBox.Yes:
             # guardamos en BD. el estado de este crono.
             self.GuardarEstadoCrono(cadena2)
-        else:
+            self.miCrono = cadena2
+            #self.miSegundoDisplay.display(self.seconds_time_to_human_string(self.segundosAcumulado))
+            #self.labelCrono.setText(self.seconds_time_to_human_string(self.segundosAcumulado))
+        else: # No se desea guardar el estado de este crono
             # también guardamos, pero puesto a cero
             self.GuardarEstadoCrono(self.seconds_time_to_human_string(0))
-        
-        # Ponemos todo a cero
-        self.segundosAcumulado = 0
-        self.miSegundoDisplay.display(self.seconds_time_to_human_string(self.segundosAcumulado)) #####################################
+            self.miCrono = "00:00:00"
+            # Ponemos todo a cero
+            self.segundosAcumulado = 0
+            self.miSegundoDisplay.display(self.seconds_time_to_human_string(self.segundosAcumulado))
+            self.labelCrono.setText(self.seconds_time_to_human_string(self.segundosAcumulado))
         
         self.Pausa = False
         self.botonIniciar.setText("Start")
@@ -643,8 +693,8 @@ class MiTimer(QWidget):
             cur.execute(miQuery)
             conn.commit()
             # ahora borramos todo el contenido del listWidget para volver a cargarlo con los datos actualizados
-            w.ui.listWidgetTareas.clear()
-            w.MostrarTabla("SELECT * FROM Tareas ORDER BY FechaAlta DESC, IDTarea DESC;")
+            #w.ui.listWidgetTareas.clear()
+            #w.MostrarTabla("SELECT * FROM Tareas ORDER BY FechaAlta DESC, IDTarea DESC;")
             w.ui.statusbar.showMessage("Crono guardado", 5000)
         except Error as e:
             self.ui.statusbar.showMessage(str(e), 10000)
@@ -670,7 +720,7 @@ class MiTimer(QWidget):
             # al hacer una pausa, hay que guardar los segundos transcurridos hasta este momento para añadirselos al reanudar el crono
             self.tiempoActual2Fin = datetime.now()
             self.segundosAcumulado += (self.tiempoActual2Fin - self.tiempoActual2Ini).seconds
-            self.botonParar.setEnabled(True) # deshabilitamos el botón Reset  
+            self.botonParar.setEnabled(True) # deshabilitamos el botón Stop  
 
             # llamamos a un diálogo de Aceptar/Cancelar para confirmar eliminación
             textoMostrar = "Estás a punto de cruzar un límite no explorado.\n"
@@ -699,6 +749,7 @@ class MiTimer(QWidget):
                 self.botonParar.setEnabled(False) # habilitamos el botón Reset    
 
         self.miSegundoDisplay.display(self.seconds_time_to_human_string(self.totalSegundos))
+        self.labelCrono.setText(self.seconds_time_to_human_string(self.totalSegundos))
 
     def ConvertirCadena_a_Segundos(self, cadena):
         # Convertimos una cadena de fecha/hora a segundos

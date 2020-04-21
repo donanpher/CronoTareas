@@ -54,7 +54,7 @@ Es el usuario el que determinará la manera que más se adapte a sus necesidades
 	- [x] Limpiar todo el código con restos del LCDDisplay que no uso. (sólo lo #comento, no lo elimino todavía hasta la v.1.4)
 	- [X] Guardar estado de todos los cronos, fechas/horas de inicio/fin, etc. en BD.
 
-### 17-04-2020 [v.1.4] Nuevas características y corrección de errores
+### 19-04-2020 [v.1.4] Nuevas características y corrección de errores
 	- [x] Botón Modificar ahora también permite modificar el Crono.
 	- [x] Pongo el límite del tamaño de cada cada campo, en los LineEdit que se usan para modificar una tarea.
 	- [x] Al hacer click en el logo, muestro un diálogo de créditos.
@@ -65,10 +65,20 @@ Es el usuario el que determinará la manera que más se adapte a sus necesidades
 			Esto es así para permitir modificar una tarea de sólo horas añadiéndole días.
 	- [x] Descarto el tema de la máscara y pongo un SpinBox (para los días) + un TimeEdit (para las horas)
 	- [x] Botón Buscar para filtrar por Tarea o Tag...podría también filtrarse por Fecha Alta, pero no la estoy mostrarndo en el list...
-	- [ ] Si hay un crono en marcha y se busca algo, el crono desaparece....
+
+### 21-04-2020 [v.1.5] Nuevas características y corrección de errores
+	Esta nueva versión ya la considero bastante estable, con muchas mejoras y "libre de errores".
+	- [x] Si se pulsa Buscar y hay un crono activo (en marcha o en pausa), se le advierte al usuario de que debe detenerlo antes (Stop).
+	- [x] Cambio el nombre del botón 'Reset' por el de 'Stop' (y su icono), porque llevaba a confusión.  
+			La idea de este botón, que sólo está habilitado cuando se hace una pausa, es la de que cuando se pulse,  
+			se pregunta si se quiere guardar el estado actual para continuar en otro momento.  
+			Si no se guarda, se pone a cero.
+	- [x] Si un crono está activo, y se pulsa Modificar, saco una advertencia para que detenga el crono, después modifique y vuelva a inicialo.
+	- [x] Al dar un alta, no recargo la lista, guardo el registro en BD. e inserto un item sin necesidad de recargar toda la lista.
+	- [x] Creo un label con el mismo contenido que el Crono, pero oculto, para poder acceder más facilmente a dicha información.
+	- [x] Fix!: GuardarEstadoTareas -> Si está en marcha un crono y se modifica la tarea, este se restaura: Arreglado, ya no!
 	- [ ] Deshabilitar botones Modificar y Eliminar durante el funcionamiento de un crono o mejor, guardar estado, recargar y continuar.
-	- [ ] Fix!: GuardarEstadoTareas -> Si está en marcha un crono y se modifica la tarea, este se restaura.
-	- [ ] Deshabilitar botón de Modificar durante el funcionamiento de su cron
-	- [ ] Si se pulsa botón Añadir durante un crono, hay que guardar el estado y restaurarlo, pues después de un alta siempre hay una recarga.
 	- [ ] Desarrollar todo el tema de los Informes.
+	- [ ] Crear un mejor texto descriptivo de esta aplicación para poner en este readme.md
+	- [ ] Poner un botón 'Help' con la ayuda de la app.
 
