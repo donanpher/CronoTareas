@@ -77,8 +77,15 @@ Es el usuario el que determinará la manera que más se adapte a sus necesidades
 	- [x] Al dar un alta, no recargo la lista, guardo el registro en BD. e inserto un item sin necesidad de recargar toda la lista.
 	- [x] Creo un label con el mismo contenido que el Crono, pero oculto, para poder acceder más facilmente a dicha información.
 	- [x] Fix!: GuardarEstadoTareas -> Si está en marcha un crono y se modifica la tarea, este se restaura: Arreglado, ya no!
-	- [ ] Deshabilitar botones Modificar y Eliminar durante el funcionamiento de un crono o mejor, guardar estado, recargar y continuar.
-	- [ ] Desarrollar todo el tema de los Informes.
+
+### 23-04-2020 [v.1.6] Nuevas características y corrección de errores
+	- [x] Guardar parciales de cada inicio parada del crono.
+	- [x] Añado a la creación de la tabla DetalleTareas, la cláusula 'ON DELETE CASCADE', para que al eliminar una tarea, se elimine su detalle.
+	- [x] Se me coló en la versión anterior (v.1.5), que el botón Eliminar quedó deshabilitado (el signal lo dejé conectado a otro slot de prueba)
+	- [x] A pesar de tener puesto en la tabla DetalleTareas, la eliminación en cascada, no veo que funcione. Lo hago por código entonces.
+	- [x] Desarrollar todo el tema de los Informes. Hecho, aunque no está del todo depurado: pasan cosas raras, como que si ejecuto un informe
+			a veces no muestra el total de horas y minutos y otras veces sí, simplemente ejecutándolo por segunda vez. ¡¿!?
+	- [ ] Poner triples comillas en las queries: esto no consigo que funcione, no las triples comillas, que tampoco, sino algo tan normal como
+			al ejecutar la query asi: cur.execute(miQuery, ("%" + queBuscar + "%",))
 	- [ ] Crear un mejor texto descriptivo de esta aplicación para poner en este readme.md
 	- [ ] Poner un botón 'Help' con la ayuda de la app.
-

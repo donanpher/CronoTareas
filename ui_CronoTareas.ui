@@ -80,7 +80,7 @@
      </font>
     </property>
     <property name="text">
-     <string>v.1.5</string>
+     <string>v.1.6</string>
     </property>
     <property name="alignment">
      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -478,6 +478,110 @@
      <attribute name="title">
       <string>&amp;Informes</string>
      </attribute>
+     <widget class="QComboBox" name="comboBoxInformes">
+      <property name="geometry">
+       <rect>
+        <x>150</x>
+        <y>10</y>
+        <width>281</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>10</pointsize>
+       </font>
+      </property>
+      <property name="currentText">
+       <string>--- Selecciona un informe ---</string>
+      </property>
+      <item>
+       <property name="text">
+        <string>--- Selecciona un informe ---</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>01 Detalle de Tareas por Tag</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>02 Detalle de Tags por Tarea</string>
+       </property>
+      </item>
+     </widget>
+     <widget class="QTableWidget" name="tableWidgetInformes">
+      <property name="geometry">
+       <rect>
+        <x>14</x>
+        <y>38</y>
+        <width>710</width>
+        <height>290</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>10</pointsize>
+       </font>
+      </property>
+      <property name="sizeAdjustPolicy">
+       <enum>QAbstractScrollArea::AdjustToContents</enum>
+      </property>
+      <property name="editTriggers">
+       <set>QAbstractItemView::NoEditTriggers</set>
+      </property>
+      <property name="selectionMode">
+       <enum>QAbstractItemView::ExtendedSelection</enum>
+      </property>
+      <property name="selectionBehavior">
+       <enum>QAbstractItemView::SelectRows</enum>
+      </property>
+      <property name="gridStyle">
+       <enum>Qt::SolidLine</enum>
+      </property>
+      <column>
+       <property name="text">
+        <string>Tag</string>
+       </property>
+      </column>
+      <column>
+       <property name="text">
+        <string>Tarea</string>
+       </property>
+      </column>
+      <column>
+       <property name="text">
+        <string>Inicio</string>
+       </property>
+      </column>
+      <column>
+       <property name="text">
+        <string>Fin</string>
+       </property>
+      </column>
+     </widget>
+     <widget class="QLabel" name="labelTotalTareas_2">
+      <property name="geometry">
+       <rect>
+        <x>18</x>
+        <y>10</y>
+        <width>140</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <family>Gallaecia Castelo</family>
+        <pointsize>10</pointsize>
+        <weight>50</weight>
+        <bold>false</bold>
+       </font>
+      </property>
+      <property name="text">
+       <string>Selecciona informe:</string>
+      </property>
+     </widget>
     </widget>
    </widget>
    <widget class="QLabel" name="labelIcono">
