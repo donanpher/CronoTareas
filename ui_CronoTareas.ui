@@ -80,7 +80,7 @@
      </font>
     </property>
     <property name="text">
-     <string>v.1.6</string>
+     <string>v.1.7</string>
     </property>
     <property name="alignment">
      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -580,6 +580,29 @@
       </property>
       <property name="text">
        <string>Selecciona informe:</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="pushButtonExportar">
+      <property name="geometry">
+       <rect>
+        <x>626</x>
+        <y>4</y>
+        <width>100</width>
+        <height>29</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <family>Gallaecia Castelo</family>
+        <pointsize>10</pointsize>
+       </font>
+      </property>
+      <property name="text">
+       <string>E&amp;xportar</string>
+      </property>
+      <property name="icon">
+       <iconset resource="mirecurso.qrc">
+        <normaloff>:/miprefijo/images/exportar.ico</normaloff>:/miprefijo/images/exportar.ico</iconset>
       </property>
      </widget>
     </widget>

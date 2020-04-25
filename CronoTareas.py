@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-#  CronoTareas, v.1.6
+#  CronoTareas, v.1.7
 #  Sencilla aplicación para cronometrar tiempos asociados a tareas.
 #  Creada usando Python 3.6.7 + PyQt5
 #  
@@ -24,7 +24,7 @@ from sqlite3 import Error
 from datetime import datetime, timedelta
 from PyQt5.QtWidgets import QMainWindow, QApplication, QWidget, QListWidget, QLabel, QPushButton, QListWidgetItem, \
     QHBoxLayout, QLCDNumber, QMessageBox, QDialog, QDialogButtonBox, QVBoxLayout, QLineEdit, QFrame, QDesktopWidget, \
-    QSpinBox, QTimeEdit, QComboBox, QTableWidgetItem
+    QSpinBox, QTimeEdit, QComboBox, QTableWidgetItem, QFileDialog
 from PyQt5 import QtCore
 from PyQt5 import QtGui
 from ui_CronoTareas import *
@@ -64,11 +64,13 @@ class AppWindow(QMainWindow):
         self.ui.checkBoxMultiCrono.stateChanged.connect(self.CronosSimultaneos)
         self.ui.labelIcono.mouseReleaseEvent = self.MuestraCreditos # mousePressEvent() , mouseReleaseEvent() , mouseDoubleClickEvent()
         self.ui.pushButtonBuscar.clicked.connect(self.BuscarTareas)
+        self.ui.pushButtonExportar.clicked.connect(self.Exportar)
         #self.ui.comboBoxInformes.currentIndexChanged.connect(self.Informes) # esta señal es cuando cambia el elemento seleccionado
         self.ui.comboBoxInformes.activated.connect(self.Informes) # esta señal es cuando se pincha el elemento, aunque no haya cambiado la selección
 
         # Inicialización de la lista de tareas
-        self.MostrarTabla("SELECT * FROM Tareas ORDER BY FechaAlta DESC, IDTarea DESC;")
+        miTupla = () # la tupla va vacía
+        self.MostrarTabla("SELECT * FROM Tareas ORDER BY FechaAlta DESC, IDTarea DESC;", miTupla)
         #self.ui.labelTotalTareas.setText("Total Tareas: " + str(self.ui.listWidgetTareas.count()))
 
     def CronosSimultaneos(self):
@@ -98,10 +100,10 @@ class AppWindow(QMainWindow):
                 if len(modifDias) ==1: # si el día sólo tiene un dígito, le añadimos el cero delante
                     modifDias = "0" + modifDias
                 modifDias = modifDias + "D " # le ponemos el formato nuestro que estamos usando en el display
-                
-                miQuery = "INSERT INTO Tareas (NombreTarea, Tag, FechaAlta, Crono) \
-                            VALUES ('" + modifTarea + "', '" + modifTag + "', '" + self.strAhora + "', '" + modifDias + modifHora + "')"
-                cur.execute(miQuery)
+                #miQuery = "INSERT INTO Tareas (NombreTarea, Tag, FechaAlta, Crono) \
+                #            VALUES ('" + modifTarea + "', '" + modifTag + "', '" + self.strAhora + "', '" + modifDias + modifHora + "')"
+                miQuery = "INSERT INTO Tareas (NombreTarea, Tag, FechaAlta, Crono) VALUES (?, ?, ?, ?)"
+                cur.execute(miQuery, (modifTarea, modifTag, self.strAhora, modifDias + modifHora,))
                 conn.commit()
                 # ahora insertamos un item en la lista con esta alta, pero antes necesitamos saber cuál es el ID asignado.
                 miQuery = "SELECT Max(IDTarea) FROM Tareas"
@@ -176,10 +178,11 @@ class AppWindow(QMainWindow):
                         # modificamos en la BD.
                         conn = sqlite3.connect(BaseDeDatos)
                         cur = conn.cursor()
-                        miQuery = "UPDATE Tareas SET NombreTarea = '" \
-                                + modifTarea + "', Tag = '" + modifTag + "', Crono = '" + modifDias + modifHora \
-                                + "' WHERE IDTarea = " + elID
-                        cur.execute(miQuery)
+                        # miQuery = "UPDATE Tareas SET NombreTarea = '" \
+                        #         + modifTarea + "', Tag = '" + modifTag + "', Crono = '" + modifDias + modifHora \
+                        #         + "' WHERE IDTarea = " + elID
+                        miQuery = "UPDATE Tareas SET NombreTarea = ?, Tag = ?, Crono = ? WHERE IDTarea = ?"
+                        cur.execute(miQuery, (modifTarea, modifTag, modifDias + modifHora, elID,))
                         conn.commit()
                         #Se debe de guardar el estado actual de cosas y sólo modificar lo que se ha tocado.
                         ItemModificar = self.ui.listWidgetTareas.currentItem()
@@ -226,16 +229,17 @@ class AppWindow(QMainWindow):
                     # A pesar de tener puesto en la tabla DetalleTareas, la eliminación en cascada, no veo que funcione.
                     # Por tanto, tengo que hacerlo manualmente desde aqui.
                     # Primero, en DetalleTareas
-                    miQuery = "DELETE FROM DetalleTareas WHERE IDTarea = " + elID
-                    cur.execute(miQuery)
+                    #miQuery = "DELETE FROM DetalleTareas WHERE IDTarea = " + elID
+                    miQuery = "DELETE FROM DetalleTareas WHERE IDTarea = ?"
+                    cur.execute(miQuery, (elID,))
                     conn.commit()
                     # Después, en Tareas
-                    miQuery = "DELETE FROM Tareas WHERE IDTarea = " + elID
-                    cur.execute(miQuery)
+                    miQuery = "DELETE FROM Tareas WHERE IDTarea = ?"
+                    cur.execute(miQuery, (elID,))
                     conn.commit()
                     # ahora borramos todo el contenido del listWidget para volver a cargarlo con los datos actualizados
                     self.ui.listWidgetTareas.clear()
-                    self.MostrarTabla("SELECT * FROM Tareas ORDER BY FechaAlta DESC, IDTarea DESC;")
+                    self.MostrarTabla("SELECT * FROM Tareas ORDER BY FechaAlta DESC, IDTarea DESC;", ())
                     self.ui.statusbar.showMessage("Tarea eliminada", 5000)
                 except Error as e:
                     self.ui.statusbar.showMessage(str(e), 10000)
@@ -259,10 +263,11 @@ class AppWindow(QMainWindow):
                 try:
                     conn = sqlite3.connect(BaseDeDatos)
                     cur = conn.cursor()
-                    miQuery = "SELECT * FROM Tareas WHERE " + campoDondeBuscar + " LIKE '%" + queBuscar + "%' ORDER BY FechaAlta DESC, IDTarea DESC;"
-                    #miQuery = "SELECT * FROM Tareas WHERE NombreTarea LIKE ? ORDER BY FechaAlta DESC, IDTarea DESC"
-                    #cur.execute(miQuery, ("%" + queBuscar + "%",)) #***CONTINUAR AQUI: NO FUNCIONA!!!
-                    cur.execute(miQuery)
+                    tuplaBuscar = ("%" + queBuscar + "%",)
+                    #miQuery = "SELECT * FROM Tareas WHERE " + campoDondeBuscar + " LIKE '%" + queBuscar + "%' ORDER BY FechaAlta DESC, IDTarea DESC;"
+                    miQuery = "SELECT * FROM Tareas WHERE " + campoDondeBuscar + " LIKE ? ORDER BY FechaAlta DESC, IDTarea DESC"
+                    cur.execute(miQuery, tuplaBuscar)
+                    #cur.execute(miQuery)
                     registros = cur.fetchall()
                     totalReg = len(registros) # total de registros de la query
                     if totalReg == 0:
@@ -279,7 +284,7 @@ class AppWindow(QMainWindow):
                 # ya sé porque era: tenía abierto el SQLite Studio.
                 if totalReg > 0:
                     self.ui.listWidgetTareas.clear()
-                    self.MostrarTabla(miQuery)
+                    self.MostrarTabla(miQuery, tuplaBuscar)
 
             else:
                 self.ui.statusbar.showMessage("Buscar Tarea Cancelado", 5000)
@@ -315,12 +320,15 @@ class AppWindow(QMainWindow):
         self.ui.listWidgetTareas.setStyleSheet( "QListWidget::item { border-bottom: 1px solid black; }" ) # esta es una línea que separa líneas
         self.show()
 
-    def MostrarTabla(self, miQuery):
+    def MostrarTabla(self, miQuery, tuplaQuery):
         # Carga en la lista de tareas todos los registros de la BD.
         try:
             conn = sqlite3.connect(BaseDeDatos)
             cur = conn.cursor()
-            cur.execute(miQuery)
+            if len(tuplaQuery) == 0: # es una query sin argumentos
+                cur.execute(miQuery)
+            else: # es una query con argumentos
+                cur.execute(miQuery, tuplaQuery)
             registros = cur.fetchall()
             totalReg = len(registros) # total de registros de la query
             #elf.ui.tableWidgetNotas.setRowCount(totalReg) # dimensionamos el widget en filas
@@ -334,6 +342,7 @@ class AppWindow(QMainWindow):
             self.ui.labelSumaCronos.setText("Suma Cronos: " + MiTimer.seconds_time_to_human_string(self, sumaCronos))
         except Error as e:
             self.ui.statusbar.showMessage(str(e), 10000)
+            print(str(e))
         finally:
             conn.close()
             self.ui.labelTotalTareas.setText("Total Tareas: " + str(self.ui.listWidgetTareas.count()))
@@ -348,6 +357,7 @@ class AppWindow(QMainWindow):
             if dlg.exec_():
                 elemElegido = dlg.miCombo.itemText(dlg.miCombo.currentIndex())
                 self.InformesDetalle("Tag", elemElegido)
+                #self.InformesDetalle("Tag", elemElegido)
             else: # Ha pulsado Cancel!
                 pass
                 #self.ui.statusbar.showMessage("Cancelado por usuario", 5000)
@@ -370,78 +380,117 @@ class AppWindow(QMainWindow):
             conn = sqlite3.connect(BaseDeDatos)
             cur = conn.cursor()
             if campo == "Tag":
-                miQuery = "SELECT T.NombreTarea, T.Tag, DT.FechaHoraInicio, DT.FechaHoraFin, \
-                                Cast ((JulianDay(DT.FechaHoraFin) - JulianDay(DT.FechaHoraInicio)) * 24 As Integer) Horas, \
-                                Cast ((JulianDay(DT.FechaHoraFin) - JulianDay(DT.FechaHoraInicio)) * 24 *60 As Integer) Minutos \
+                self.queryInformes = "SELECT T.NombreTarea, T.Tag, DT.FechaHoraInicio, DT.FechaHoraFin, \
+                                Cast ((JulianDay(DT.FechaHoraFin) - JulianDay(DT.FechaHoraInicio)) * 24 * 60 * 60 As Integer) Segundos \
                                 FROM Tareas T, DetalleTareas DT ON T.IDTarea = DT.IDTarea \
-                                WHERE T.Tag = '" + valor + "' \
+                                WHERE T.Tag = ? \
                                 ORDER BY T.FechaAlta, DT.FechaHoraInicio"
             else:
-                miQuery = "SELECT T.Tag, T.NombreTarea, DT.FechaHoraInicio, DT.FechaHoraFin, \
-                                Cast ((JulianDay(DT.FechaHoraFin) - JulianDay(DT.FechaHoraInicio)) * 24 As Integer) Horas, \
-                                Cast ((JulianDay(DT.FechaHoraFin) - JulianDay(DT.FechaHoraInicio)) * 24 *60 As Integer) Minutos \
+                self.queryInformes = "SELECT T.Tag, T.NombreTarea, DT.FechaHoraInicio, DT.FechaHoraFin, \
+                                Cast ((JulianDay(DT.FechaHoraFin) - JulianDay(DT.FechaHoraInicio)) * 24 * 60 * 60 As Integer) Segundos \
                                 FROM Tareas T, DetalleTareas DT ON T.IDTarea = DT.IDTarea \
-                                WHERE T.NombreTarea = '" + valor + "' \
+                                WHERE T.NombreTarea = ? \
                                 ORDER BY T.FechaAlta, DT.FechaHoraInicio"
 
-            cur.execute(miQuery)
+            self.tuplaQuery = (valor,)
+            cur.execute(self.queryInformes, self.tuplaQuery)
             registros = cur.fetchall()
             totalReg = len(registros) # total de registros de la query
-            if totalReg >0:
+            if totalReg > 0:
                 totalReg += 1 # añadimos una fila para representar los totales
+            self.ui.tableWidgetInformes.clear()
             self.ui.tableWidgetInformes.setRowCount(totalReg) # dimensionamos el widget en filas
+            self.ui.tableWidgetInformes.setColumnCount(5)
             recNum = 0
-            totalHoras, totalMinutos = 0, 0
+            totalSegundos = 0
             # recorremos toda la query en filas (registros) y tupla (campos)
             for tupla in registros:
                 colNum = 0
                 for columna in tupla:
-                    unaColumna = QTableWidgetItem(str(columna))
+                    if colNum == 4: # vamos sumando los segundos
+                        totalSegundos += int(columna)
+                        unaColumna = QTableWidgetItem(MiTimer.seconds_time_to_human_string(self, columna)) # convierto los segundos en formato humano
+                        unaColumna.setTextAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignVCenter) # alineación derecha
+                    else:
+                        unaColumna = QTableWidgetItem(str(columna))
                     self.ui.tableWidgetInformes.setItem(recNum, colNum, unaColumna)
-                    if colNum == 4: # vamos sumando las horas
-                        totalHoras += int(columna)
-                    if colNum == 5: # vamos sumando los minutos
-                        totalMinutos += int(columna)
+                    #self.ui.tableWidgetInformes.item(recNum, colNum).setText(str(columna))
                     colNum += 1
                 recNum += 1
             
             if recNum > 0: # Añadimos una fila con los Totales
-                unaColumna = QTableWidgetItem("")
-                self.ui.tableWidgetInformes.setItem(recNum, 0, unaColumna) # no contiene nada: para hacer hueco
-                unaColumna = QTableWidgetItem("")
-                self.ui.tableWidgetInformes.setItem(recNum, 1, unaColumna) # no contiene nada: para hacer hueco
-                unaColumna = QTableWidgetItem("")
-                self.ui.tableWidgetInformes.setItem(recNum, 2, unaColumna) # no contiene nada: para hacer hueco
                 unaColumna = QTableWidgetItem("TOTALES")
                 self.ui.tableWidgetInformes.setItem(recNum, 3, unaColumna)
-                unaColumna = QTableWidgetItem(str(totalHoras))
+                unaColumna = QTableWidgetItem(MiTimer.seconds_time_to_human_string(self, totalSegundos))
+                unaColumna.setTextAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignVCenter) # alineación derecha
                 self.ui.tableWidgetInformes.setItem(recNum, 4, unaColumna)
-                unaColumna = QTableWidgetItem(str(totalMinutos))
-                self.ui.tableWidgetInformes.setItem(recNum, 5, unaColumna)
-
 
             # Geometría de la tabla
-            self.ui.tableWidgetInformes.setColumnCount(6) # Total de columnas
             if campo == "Tag":
-                self.ui.tableWidgetInformes.setHorizontalHeaderLabels(("Tarea","Tag","Inicio","Fin","Horas","Min."))
+                self.ui.tableWidgetInformes.setHorizontalHeaderLabels(("Tarea","Tag","Inicio","Fin","Tiempo"))
                 self.ui.tableWidgetInformes.setColumnWidth(0,190) # ancho columna Tarea
                 self.ui.tableWidgetInformes.setColumnWidth(1,100) # ancho columna Tag
             else:
-                self.ui.tableWidgetInformes.setHorizontalHeaderLabels(("Tag","Tarea","Inicio","Fin","Horas","Min."))
+                self.ui.tableWidgetInformes.setHorizontalHeaderLabels(("Tag","Tarea","Inicio","Fin","Tiempo"))
                 self.ui.tableWidgetInformes.setColumnWidth(0,100) # ancho columna Tag
                 self.ui.tableWidgetInformes.setColumnWidth(1,190) # ancho columna Tarea
             
             self.ui.tableWidgetInformes.setColumnWidth(2,150) # ancho columna HoraInicio
             self.ui.tableWidgetInformes.setColumnWidth(3,150) # ancho columna HoraFin
-            self.ui.tableWidgetInformes.setColumnWidth(4,50) # ancho columna Tot. Horas
-            self.ui.tableWidgetInformes.setColumnWidth(5,50) # ancho columna Tot. Horas
+            self.ui.tableWidgetInformes.setColumnWidth(4,100) # ancho columna Tiempo
             self.ui.tableWidgetInformes.resizeRowsToContents() # ajuste alto de fila a su contenido
+            self.ui.tabWidgetTareas.update()
             #self.ui.tableWidgetInformes.horizontalHeaderItem().setTextAlignment(AlignHCenter)
 
         except Error as e:
             QMessageBox.about(self, "Información", str(e))
         finally:
             conn.close()
+
+    def Exportar(self):
+        # Exportar datos del informe actualmente seleccionado, a un archivo de texto .csv
+        try: # primero intentamos acceder al atributo de clase self.queryInformes, que no existirá si no se ha ejecutado antes un informe
+            if self.queryInformes:
+                pass
+            # preguntamos al usuario dónde y con que nombre guardar el archivo de datos.
+            options = QFileDialog.Options()
+            options |= QFileDialog.DontUseNativeDialog
+            fichero, _ = QFileDialog.getSaveFileName(self,"QFileDialog.getSaveFileName()","","Text Files (*.csv)", options=options)
+            if fichero:
+                print(fichero) # nos devuelve la ruta completa + nombre de archivo
+                try: # si ya se ha ejecutado el informe, iniciamos la conexión a la BD.
+                    conn = sqlite3.connect(BaseDeDatos)
+                    cur = conn.cursor()
+                    cur.execute(self.queryInformes, self.tuplaQuery)
+                    registros = cur.fetchall()
+                    nombresDeCampo = [description[0] for description in cur.description] # estos son los nombres de los campos que van a ir en el encabezado del fichero
+                    totalReg = len(registros) # total de registros de la query
+                    recNum = 0
+                    contenidoFichero = "" # aqui es donde vamos a meter todo lo que vamos a escribir en el fichero
+                    for jj in nombresDeCampo: # añadimos una primera fila con los nombres de los campos
+                        contenidoFichero += jj + "\t"
+                    contenidoFichero += "\n"
+                    for registro in registros: # recorremos todos los registros
+                        for campo in registro: # recorremos todos los campos
+                           contenidoFichero += str(campo) + "\t" # delimitamos los campos con un tabulador
+                        contenidoFichero += "\n" # nueva línea
+                        recNum += 1
+                    # ahora guardamos fichero
+                    with open(fichero, "wt") as fiche:
+                        fiche.write(contenidoFichero)
+                    QMessageBox.about(self, "Información", "Informe exportado en:\n" + fichero)
+                except Error as e:
+                    self.ui.statusbar.showMessage(str(e), 10000)
+                    print(str(e))
+                finally:
+                    conn.close()
+                    self.ui.statusbar.showMessage("Exportados ", 5000)
+            else:
+                print("Guardar fichero: cancelado") # si el usuario cancela
+
+        except AttributeError:
+            QMessageBox.about(self, "Información", "No hay nada que exportar.")
+
 
     def ActualizarLista(self, miQuery, miCampo):
         # Es para actualizar el listWidget, sólo para el registro-campo especificado.
@@ -450,7 +499,7 @@ class AppWindow(QMainWindow):
     def Recargar(self):
         # Vacía y vuelve a cargar la lista de tareas a partir de la BD.
         self.ui.listWidgetTareas.clear()
-        self.MostrarTabla("SELECT * FROM Tareas ORDER BY FechaAlta DESC, IDTarea DESC;")
+        self.MostrarTabla("SELECT * FROM Tareas ORDER BY FechaAlta DESC, IDTarea DESC;", ()) # le pasamos una tupla vacía
     
     def center(self):
         # Para centrar la ventana en el escritorio
@@ -799,7 +848,7 @@ class MiTimer(QWidget):
                                 + "\nPuedes activar esta opción en la pantalla principal.")
 
         # Si el check está en modo monocrono, se deja habilitado para permitir conmutar a modo multicrono
-        # Si el check está en modo multicron, se deshabilita si hay más de un crono activo
+        # Si el check está en modo multicrono, se deshabilita si hay más de un crono activo
         # ***PENDIENTE: Pendiente de comprobar más a fondo toda la casuística ...
         if w.PermitirCronosSimultaneos: # modo multicrono
             if MiTimer.numCronosActivos > 1:
@@ -861,8 +910,9 @@ class MiTimer(QWidget):
             # modificamos en la BD.
             conn = sqlite3.connect(BaseDeDatos)
             cur = conn.cursor()
-            miQuery = "UPDATE Tareas SET Crono = '" + elCrono + "' WHERE IDTarea = " + self.IDTarea.text()
-            cur.execute(miQuery)
+            #miQuery = "UPDATE Tareas SET Crono = '" + elCrono + "' WHERE IDTarea = " + self.IDTarea.text()
+            miQuery = "UPDATE Tareas SET Crono = ? WHERE IDTarea = ?"
+            cur.execute(miQuery, (elCrono, self.IDTarea.text(),))
             conn.commit()
             # ahora borramos todo el contenido del listWidget para volver a cargarlo con los datos actualizados
             #w.ui.listWidgetTareas.clear()
@@ -936,17 +986,18 @@ class MiTimer(QWidget):
             conn = sqlite3.connect(BaseDeDatos)
             cur = conn.cursor()
             if accion == 1 or accion == 3: # si es Start o Continue, damos de alta un nuevo registro
-                miQuery = "INSERT INTO DetalleTareas (IDTarea, FechaHoraInicio) VALUES (" + str(idtarea) + ", '" + tiempo + "')"
-                print(miQuery)
-                print("")
-                cur.execute(miQuery)
+                #miQuery = "INSERT INTO DetalleTareas (IDTarea, FechaHoraInicio) VALUES (" + str(idtarea) + ", '" + tiempo + "')"
+                miQuery = "INSERT INTO DetalleTareas (IDTarea, FechaHoraInicio) VALUES (?, ?)"
+                cur.execute(miQuery, (str(idtarea), tiempo,))
             else: # es una pausa, por lo tanto hay que actualizar el último registro introducido
-                miQuery = "SELECT Max(IDDetalle) FROM DetalleTareas WHERE IDTarea = " + str(idtarea)
-                cur.execute(miQuery)
+                #miQuery = "SELECT Max(IDDetalle) FROM DetalleTareas WHERE IDTarea = " + str(idtarea)
+                miQuery = "SELECT Max(IDDetalle) FROM DetalleTareas WHERE IDTarea = ?"
+                cur.execute(miQuery, (str(idtarea),))
                 elRegistro = cur.fetchone()
                 elID = elRegistro[0]              
-                miQuery = "UPDATE DetalleTareas SET FechaHoraFin = '" + tiempo + "' WHERE IDDetalle =" + str(elID)
-                cur.execute(miQuery)
+                #miQuery = "UPDATE DetalleTareas SET FechaHoraFin = '" + tiempo + "' WHERE IDDetalle =" + str(elID)
+                miQuery = "UPDATE DetalleTareas SET FechaHoraFin = ? WHERE IDDetalle = ?"
+                cur.execute(miQuery, (tiempo, str(elID),))
             
             conn.commit()
         except Error as e:

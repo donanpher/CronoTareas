@@ -1,5 +1,6 @@
 <RCC>
   <qresource prefix="miprefijo">
+    <file>images/exportar.ico</file>
     <file>images/guardar1.ico</file>
     <file>images/guardar2.ico</file>
     <file>images/buscar.ico</file>

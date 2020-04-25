@@ -85,7 +85,10 @@ Es el usuario el que determinará la manera que más se adapte a sus necesidades
 	- [x] A pesar de tener puesto en la tabla DetalleTareas, la eliminación en cascada, no veo que funcione. Lo hago por código entonces.
 	- [x] Desarrollar todo el tema de los Informes. Hecho, aunque no está del todo depurado: pasan cosas raras, como que si ejecuto un informe
 			a veces no muestra el total de horas y minutos y otras veces sí, simplemente ejecutándolo por segunda vez. ¡¿!?
-	- [ ] Poner triples comillas en las queries: esto no consigo que funcione, no las triples comillas, que tampoco, sino algo tan normal como
-			al ejecutar la query asi: cur.execute(miQuery, ("%" + queBuscar + "%",))
+
+### 25-04-2020 [v.1.7] Nuevas características y corrección de errores
+	- [x] Ahora las queries se hacen correctamente: query = "SELECT * FROM Tabla WHERE Campo = ?", y despues: cur.execute(query, (valor,))
+	- [x] En los informes, ahora se muestra una sola columna 'Tiempo' con la diferencia entre el inicio y el fin. También una última fila con los 'Totales'.
+	- [x] Botón 'Exportar', para generar un archivo de texto .csv con los datos del informe seleccionado.
 	- [ ] Crear un mejor texto descriptivo de esta aplicación para poner en este readme.md
 	- [ ] Poner un botón 'Help' con la ayuda de la app.
