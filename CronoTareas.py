@@ -1,22 +1,28 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-#  CronoTareas, v.1.7
-#  Sencilla aplicación para cronometrar tiempos asociados a tareas.
-#  Creada usando Python 3.6.7 + PyQt5
-#  
-#  Copyright April, 2020 Fer <donanpher@gmail.com>
-#  (durante la cuarentena del #Coronavirus #SARS-CoV-2 #Covid-19)
-#  
-#  This program is free software; you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License as published by
-#  the Free Software Foundation; either version 2 of the License, or
-#  (at your option) any later version.
-#  
-#  This program is distributed in the hope that it will be useful,
-#  but WITHOUT ANY WARRANTY; without even the implied warranty of
-#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
+"""
+ CronoTareas, v.1.8
+ Sencilla aplicación para cronometrar tiempos asociados a tareas.
+ Creada usando Python 3.6.7 + PyQt5
+    Fecha Inicio: 14-04-2020
+    Fecha Fin (v.1.8): 26-04-2020
+    Tiempo empleado: 13 días, a 4 horas/día (aprox.) = 52 horas (más o menos...)
+    Si hubiese tenido CronoTareas, sabría el tiempo exacto que me llevó.
+
+ Copyright April, 2020 Fer <donanpher@gmail.com>
+ (durante la cuarentena del #Coronavirus #SARS-CoV-2 #Covid-19)
+ 
+ This program is free software; you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation; either version 2 of the License, or
+ (at your option) any later version.
+ 
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ """
 #  
 
 import sqlite3, sys, os
@@ -28,6 +34,15 @@ from PyQt5.QtWidgets import QMainWindow, QApplication, QWidget, QListWidget, QLa
 from PyQt5 import QtCore
 from PyQt5 import QtGui
 from ui_CronoTareas import *
+
+#########################################################
+__author__ = "Fernando Souto"
+__email_ = "donanpher@gmail.com"
+__copyright__ = "Copyright (c) April 2020 Fernando Souto"
+__license__ = "GPLv3"
+__version__ = "1.8"
+#########################################################
+
 BaseDeDatos = "CronoTareas.db"
 
 class AppWindow(QMainWindow):
@@ -67,6 +82,10 @@ class AppWindow(QMainWindow):
         self.ui.pushButtonExportar.clicked.connect(self.Exportar)
         #self.ui.comboBoxInformes.currentIndexChanged.connect(self.Informes) # esta señal es cuando cambia el elemento seleccionado
         self.ui.comboBoxInformes.activated.connect(self.Informes) # esta señal es cuando se pincha el elemento, aunque no haya cambiado la selección
+
+        # Chequeo inicial de la BD.: se comprueba que si hay un campo FechaHoraIni con datos, no haya uno FechaHoraFin sin ellos, y si lo hay igualar ambas fechas
+        # Esto puede suceder si durante el funcionamiento de un crono, el usuario sale de la app. sin más, lo que después puede provocar un error en los listados.
+        self.ComprobarBD("") # no le pasamos ninguna fecha porque no la sabemos
 
         # Inicialización de la lista de tareas
         miTupla = () # la tupla va vacía
@@ -151,6 +170,7 @@ class AppWindow(QMainWindow):
                 elCrono = miWidget.labelCrono.text()
                 # llamamos al diálogo para captar los datos con la modificación
                 dlg = CustomDialog(self)
+                dlg.setWindowTitle("Modificar Tarea")
                 dlg.miLineEditTareaDialog.setText(laTarea)
                 dlg.miLineEditTagDialog.setText(elTag)
                 # El crono por defecto siempre va a incluir días, aunque sean cero.
@@ -237,9 +257,11 @@ class AppWindow(QMainWindow):
                     miQuery = "DELETE FROM Tareas WHERE IDTarea = ?"
                     cur.execute(miQuery, (elID,))
                     conn.commit()
+                    # eliminamos de la lista sólo el item actual, sin necesidad de vaciar lista y volver a cargarla. Así los cronos pueden seguir funcionando.
+                    self.ui.listWidgetTareas.takeItem(filaModificar)
                     # ahora borramos todo el contenido del listWidget para volver a cargarlo con los datos actualizados
-                    self.ui.listWidgetTareas.clear()
-                    self.MostrarTabla("SELECT * FROM Tareas ORDER BY FechaAlta DESC, IDTarea DESC;", ())
+                    # self.ui.listWidgetTareas.clear()
+                    # self.MostrarTabla("SELECT * FROM Tareas ORDER BY FechaAlta DESC, IDTarea DESC;", ())
                     self.ui.statusbar.showMessage("Tarea eliminada", 5000)
                 except Error as e:
                     self.ui.statusbar.showMessage(str(e), 10000)
@@ -408,9 +430,13 @@ class AppWindow(QMainWindow):
                 colNum = 0
                 for columna in tupla:
                     if colNum == 4: # vamos sumando los segundos
-                        totalSegundos += int(columna)
-                        unaColumna = QTableWidgetItem(MiTimer.seconds_time_to_human_string(self, columna)) # convierto los segundos en formato humano
-                        unaColumna.setTextAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignVCenter) # alineación derecha
+                        if columna is None: # por si nos viene un valor nulo, sobretodo si no hay fechafin
+                            unaColumna = QTableWidgetItem(MiTimer.seconds_time_to_human_string(self, 0)) # convierto los segundos en formato humano
+                            unaColumna.setTextAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignVCenter) # alineación derecha
+                        else:
+                            totalSegundos += int(columna)
+                            unaColumna = QTableWidgetItem(MiTimer.seconds_time_to_human_string(self, columna)) # convierto los segundos en formato humano
+                            unaColumna.setTextAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignVCenter) # alineación derecha
                     else:
                         unaColumna = QTableWidgetItem(str(columna))
                     self.ui.tableWidgetInformes.setItem(recNum, colNum, unaColumna)
@@ -498,9 +524,32 @@ class AppWindow(QMainWindow):
 
     def Recargar(self):
         # Vacía y vuelve a cargar la lista de tareas a partir de la BD.
-        self.ui.listWidgetTareas.clear()
-        self.MostrarTabla("SELECT * FROM Tareas ORDER BY FechaAlta DESC, IDTarea DESC;", ()) # le pasamos una tupla vacía
+        if MiTimer.numCronosActivos > 0:
+            QMessageBox.about(self, "Información", "Para poder recargar la lista de Tareas, no puede haber ningún Crono activo. \
+                                                    \nPulsa Stop, guarda el Crono, modifica Tarea y vuelve a iniciarla.")
+        else:        
+            self.ui.listWidgetTareas.clear()
+            self.MostrarTabla("SELECT * FROM Tareas ORDER BY FechaAlta DESC, IDTarea DESC;", ()) # le pasamos una tupla vacía
     
+    def ComprobarBD(self, ahora):
+        # Chequeo inicial de la BD.: se comprueba que si hay un campo FechaHoraIni con datos, no haya uno FechaHoraFin sin ellos, y si lo hay igualar ambas fechas
+        # Esto puede suceder si durante el funcionamiento de un crono, el usuario sale de la app. sin más, lo que después puede provocar un error en los listados.
+        try:
+            conn = sqlite3.connect(BaseDeDatos)
+            cur = conn.cursor()
+            if ahora == "":
+                miQuery = "UPDATE DetalleTareas SET FechaHoraFin = FechaHoraInicio WHERE FechaHoraFin is null"
+                cur.execute(miQuery)
+            else:
+                miQuery = "UPDATE DetalleTareas SET FechaHoraFin = ? WHERE FechaHoraFin is null"
+                cur.execute(miQuery, (ahora,))
+            conn.commit()
+        except Error as e:
+            self.ui.statusbar.showMessage(str(e), 10000)
+            print(str(e))
+        finally:
+            conn.close()
+
     def center(self):
         # Para centrar la ventana en el escritorio
         # geometry of the main window
@@ -511,6 +560,20 @@ class AppWindow(QMainWindow):
         qr.moveCenter(cp)
         # top left of rectangle becomes top left of window centering it
         self.move(qr.topLeft())
+    
+    def closeEvent(self, event):
+        # Si el usuario cierra en la X la aplicación, le pedimos confirmación sólo si hay un crono activo.
+        if MiTimer.hayUnCronoActivo: # si además hay un crono activo, se lo advertimos
+            advertencia = "Atención: hay un Crono que sigue activo\n\n"
+
+            buttonReply = QMessageBox.question(self, 'Salir de la aplicación', advertencia + "¿Quieres salir de CronoTareas?", QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+            
+            if buttonReply == QMessageBox.Yes:
+                ahora = datetime.strftime(datetime.now(), "%Y-%m-%d %H:%M:%S")
+                self.ComprobarBD(ahora) # hacemos una depuración por si queda una fechafin sin poner y le ponemos la actual.
+                event.accept()
+            else:
+                event.ignore()
 
     def MuestraCreditos(self, jj):
         QMessageBox.about(self, "Información", 
@@ -544,7 +607,7 @@ class AppWindow(QMainWindow):
                         IDTarea         INTEGER   REFERENCES Tareas (IDTarea) ON DELETE CASCADE \
                                                 NOT NULL, \
                         FechaHoraInicio TEXT (20), \
-                        FechaHoraFina   TEXT (20)  \
+                        FechaHoraFin    TEXT (20)  \
                     );"
             cur.execute(laQuery)
             conn.commit()
@@ -566,7 +629,7 @@ class AppWindow(QMainWindow):
             laQuery = "INSERT INTO DetalleTareas ( \
                               IDTarea, \
                               FechaHoraInicio, \
-                              FechaHoraFina \
+                              FechaHoraFin \
                           ) \
                           VALUES ( \
                               1, \

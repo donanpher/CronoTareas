@@ -12,7 +12,8 @@ Abril 2020 (durante la cuarentena del #Coronavirus #SARS-CoV-2 #Covid-19)
 ---
 ## Descripción General
 Aplicación para llevar un control de tiempo de distintas tareas.  
-Se pueden añadir tantas tareas como se quiera, iniciarlas, pausarlas o detenerlas. Al detenerlas se le pregunta al usuario si desea guardar la tarea para continuarla en otra ocasión o simplemente deternerla definitivamente y ponerla a cero.  
+Se pueden añadir tantas tareas como se quiera, iniciarlas, pausarlas o detenerlas. Al detenerlas se le pregunta al usuario si desea guardar el Crono en su estado actual para continuar en otra ocasión o simplemente deternerlo y ponerlo a cero.  
+Independiente de esto último, cada vez que se 'Start' o 'Continue' se guarda la Fecha-Hora de inicio, y cuando se 'Pause' o 'Stop' se guarda la Fecha-Hora de fin.  
 Permite tener varios cronómetros activos al mismo tiempo. Esta característica también se puede desactivar para que esté activa sólamente una tarea a la vez.
 Existen 2 campos para identificar cada tarea:  
 	- *Nombre Tarea*: Normalmente está pensado para describir la tarea específica que se quiere controlar.  
@@ -39,7 +40,8 @@ Es el usuario el que determinará la manera que más se adapte a sus necesidades
 	- [x] Mostrar total de tareas
 	- [x] Cambio importante en el LCDDisplay: ahora el tiempo lo controlo con diferencias de datetime.now(), en vez de usar QTime.
 		Esto supone que ahora ya no estoy limitado en el Display a 24 horas, sino que puedo mostrar días también.
-		Yo no sabía que en un LCDDisplay se podía mostrar cualquier cosa. Fue gracias al descubrimiento de un Custom LCDDisplay el que me hizo ver la luz y motivarme a hacer el cambio, que además coincide con mi idea inicial de uso del DateTime. 
+		Yo no sabía que en un LCDDisplay se podía mostrar cualquier cosa. Fue gracias al descubrimiento de un Custom LCDDisplay el que me hizo ver la luz y motivarme a
+		hacer el cambio, que además coincide con mi idea inicial de uso del DateTime. 
 		Desde aqui agradezco este descubrimiento a Juan Carlos Paco (https://gist.github.com/juancarlospaco/c0fb15281d56dc6eb2f4)
 		De este repositorio tomé la idea y le copio, con permiso y por comodidad, la función seconds_time_to_human_string() que convierte segundos a una 'lectura humana'.
 	- [x] Se deshabilita el botón Reset mientras esté en funcionamiento un crono o mientra no se haya iniciado ninguno
@@ -90,5 +92,16 @@ Es el usuario el que determinará la manera que más se adapte a sus necesidades
 	- [x] Ahora las queries se hacen correctamente: query = "SELECT * FROM Tabla WHERE Campo = ?", y despues: cur.execute(query, (valor,))
 	- [x] En los informes, ahora se muestra una sola columna 'Tiempo' con la diferencia entre el inicio y el fin. También una última fila con los 'Totales'.
 	- [x] Botón 'Exportar', para generar un archivo de texto .csv con los datos del informe seleccionado.
+
+### 26-04-2020 [v.1.8] Corrección de errores
+	- [x] Corregido que no se pueda recargar la lista de tareas mientras haya un crono activo.
+	- [x] Al eliminar una tarea, se elimina de la BD. y después el item de la lista, ya no se elimina la lista y se vuelve a cargar. Así los cronos pueden seguir funcionando.
+	- [x] Al iniciarse la aplicación, compruebo si hay algún campo con FechaHoraFin vacío, y si lo hay le pongo la FechaHoraInicio
+	- [x] Capturo la señal de cierre de la aplicación para preguntar al usuario si desea salir, y además si lo hace habiendo un crono activo se lo advierto.
+			Además, si aún así sale de la aplicación sin parar el crono, yo le pongo la fecha-hora actual al campo FechaHoraFin.
+	- [x] Hago el primer 'freeze' a la aplicación. Le paso el pyinstaller y la situo en /opt/CronoTareas:
+		`$ pyinstaller --onefile --icon=./images/cronotareas.png --windowed --add-data="CronoTareas.db:." CronoTareas.py`
+	- [x] Corregido pequeño error al Crear BD.: nombre de campo FechaHoraFina (mal), FechaHoraFin(bien).
 	- [ ] Crear un mejor texto descriptivo de esta aplicación para poner en este readme.md
 	- [ ] Poner un botón 'Help' con la ayuda de la app.
+	- [ ] Traducir la aplicación a versión internacional (inglés).
