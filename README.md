@@ -19,11 +19,11 @@ Abril 2020 (durante la cuarentena del #Coronavirus #SARS-CoV-2 #Covid-19)
 ![Screenshot](./images/Screenshot_CronoTareas.png)
 ---
 ## Instalación en Linux <span style="color:grey"><i>(Linux installation)</i></span>
-* Descargar ./dist/CronoTareas.zip
+* <a href="https://drive.google.com/file/d/1cgRqV5Qgp4uzodVLaAUIhtPUVwQF5riE/view?usp=sharing">Descargar CronoTareas.zip (46 MB)</a>
 * Descomprimelo en una nueva carpeta, por ejemplo /opt/cronotareas/
 * Ejecuta CronoTareas
 ---
-* <span style="color:grey"><i>Download ./dist/CronoTareas.zip</i> </span>  
+* <span style="color:grey"><i><a href="https://drive.google.com/file/d/1cgRqV5Qgp4uzodVLaAUIhtPUVwQF5riE/view?usp=sharing">Download CronoTareas.zip (46 MB)</a></i> </span>  
 * <span style="color:grey"><i>Unzip it into a new folder, for example /opt/cronotareas/</i> </span>  
 * <span style="color:grey"><i>Run CronoTareas</i> </span>  
 
