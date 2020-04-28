@@ -1,26 +1,93 @@
-# CronoTareas
-Sencilla aplicación para llevar el control del tiempo de tareas.  
-Hecha en Python 3.6.7 + PyQt5  
-Versión para Linux, testada en Ubuntu Budgie 18.04.4 LTS
-  
+<h1> CronoTareas </h1>  
+
+![Python GPLv3](https://img.shields.io/badge/Python-v3.6.7-success) ![PyQt v5](https://img.shields.io/badge/PyQt-5-brightgreen) ![SQLite v3](https://img.shields.io/badge/SQLite-v.3-blueviolet) ![License GPLv3](https://img.shields.io/badge/License-GPLv3-red) 
+
+## Cronometra la duración de tus Tareas.  
+## <span style="color:grey"><i>Time the duration of your Tasks</i></span>
+Hecha en Python 3.6.7 + PyQt5 + SQLite 3  
+Versión para Linux, testada únicamente en Ubuntu Budgie 18.04.4 LTS  
+<span style="color:grey">
+<i>Made with Python 3.6.7 + PyQt5 + SQLite 3</i>  
+<i>Linux version, tested only on Ubuntu Budgie 18.04.4 LTS</i>  
+</span>  
 Fernando Souto (donanpher@gmail.com)  
 A Coruña (Galicia), Spain  
 Abril 2020 (durante la cuarentena del #Coronavirus #SARS-CoV-2 #Covid-19)  
+<span style="color:grey"><i>April 2020 (during the #Coronavirus # SARS-CoV-2 # Covid-19 quarantine)</i></span>  
 
 ---
-![](./images/Screenshot_CronoTareas.png)
+![Screenshot](./images/Screenshot_CronoTareas.png)
 ---
-## Descripción General
-Aplicación para llevar un control de tiempo de distintas tareas.  
-Se pueden añadir tantas tareas como se quiera, iniciarlas, pausarlas o detenerlas. Al detenerlas se le pregunta al usuario si desea guardar el Crono en su estado actual para continuar en otra ocasión o simplemente deternerlo y ponerlo a cero.  
-Independiente de esto último, cada vez que se 'Start' o 'Continue' se guarda la Fecha-Hora de inicio, y cuando se 'Pause' o 'Stop' se guarda la Fecha-Hora de fin.  
-Permite tener varios cronómetros activos al mismo tiempo. Esta característica también se puede desactivar para que esté activa sólamente una tarea a la vez.
-Existen 2 campos para identificar cada tarea:  
-	- *Nombre Tarea*: Normalmente está pensado para describir la tarea específica que se quiere controlar.  
-	- *Tag*			: Su función es más general, por ejemplo, el nombre del proyecto, el cliente, etc.  
-Es el usuario el que determinará la manera que más se adapte a sus necesidades.  
+## Instalación en Linux <span style="color:grey"><i>(Linux installation)</i></span>
+* Descargar ./dist/CronoTareas.zip
+* Descomprimelo en una nueva carpeta, por ejemplo /opt/cronotareas/
+* Ejecuta CronoTareas
 ---
-## Versiones
+* <span style="color:grey"><i>Download ./dist/CronoTareas.zip</i> </span>  
+* <span style="color:grey"><i>Unzip it into a new folder, for example /opt/cronotareas/</i> </span>  
+* <span style="color:grey"><i>Run CronoTareas</i> </span>  
+
+## Descripción General <span style="color:grey"><i>(General Description)</i></span>
+Aplicación para llevar el control de tiempo de distintas tareas.  
+Se pueden añadir tantas tareas como se quiera, iniciarlas, pausarlas o detenerlas.  
+<span style="color:grey"><i>Application to take time control on your tasks</i></span>  
+<span style="color:grey"><i>You can add as many tasks as you want, start, pause, or stop them</i></span>  
+
+### <b>Funciones:</b>  <span style="color:grey"><i>(Functions)</i></span>
+* Botón `Start`: Inicia una tarea y guarda la fecha y hora de ese inicio.  
+* Botón `Pause`: Pausa la tarea y guarda la fecha y hora de esa pausa.
+* Botón `Continue`: Reanuda la tarea y guarda la fecha y hora de la reanudación.  
+* Botón `Stop`: Detiene la tarea y pregunta si se desea guardar el estado actual del Crono para una continuación posterior.  
+* Cada combinación de ('Start' + 'Pause') o ('Continue' + 'Pause') genera un tramo de tiempo que queda almacenado en la base de datos.  
+* En la pestaña de Informes se pueden consultar todos estos tramos de tiempo.  
+* La elección entre guardar el Crono o no, no tiene repercusión en los informes. Es sólo a efectos visuales.  
+---
+* <span style="color:grey"><i>Button `Start`: Starts a task and saves its date & time</i> </span>  
+* <span style="color:grey"><i>Button `Pause`: Pauses the task and saves its date & time</i></span>  
+* <span style="color:grey"><i>Button `Continue`: Resumes the task and save the date and time of the resume</i></span>  
+* <span style="color:grey"><i>Button `Stop`: Stop the task and ask if you want to save the current state of the Chrono for a later continuation</i></span>  
+* <span style="color:grey"><i>Each combination of ('Start' + 'Pause') or ('Continue' + 'Pause') generates a stretch of time that is stored in the database</i></span>  
+* <span style="color:grey"><i>In the Reports tab (Informes) you can see all these time sections</i></span>  
+* <span style="color:grey"><i>The choice between saving the Chrono or not has no impact on the reports. It is only for visual purposes.</i></span>  
+  
+### <b>Tareas/Tags:</b>  <span style="color:grey"><i>(Tasks/Tags)</i></span>
+* Nombre de Tarea: Se refiere a una tarea particular y concreta dentro de un proyecto. Por ejemplo, elaborar documentación, codificar conexión a base de datos, etc.  
+* Tag: Está a un nivel superior, se refiere al proyecto o cliente. Por ejemplo, Cliente X o Proyecto Y.  
+Resumiendo: Los Tags incluyen Tareas.  
+---
+* <span style="color:grey"><i>Task Name: Refers to a particular and concrete task within a project. For example, preparing documentation, coding database connection, etc.</i></span>  
+* <span style="color:grey"><i>Tag: It is at a higher level, it refers to the project or client. For example, Client X or Project Y</i></span>  
+<span style="color:grey"><i>Summarizing: Tags include Tasks</i></span>  
+
+### <b>Tipos de Tareas:</b> (<i>recomendaciones de uso</i>):  <span style="color:grey"><i>(Types of Tasks, recommendations of use)</i></span>
+* Tareas recurrentes: Son tareas que se repiten en el tiempo, por ejemplo, ir a tomar un café. Al terminar la tarea, vuelvo a poner el crono a cero.  
+* Tareas independientes: Son únicas y no se vuelven a repetir. En este tipo de tareas suelo guardar el crono para la siguiente vez, así veo continuamente el tiempo total acumulado.  
+---
+* <span style="color:grey"><i>Recurring tasks: These are tasks that are repeated over time, for example, going for a coffee. At the end of the task, I reset the clock to zero.</i></span>  
+* <span style="color:grey"><i>Independent tasks: They are unique and do not happen again. In this type of tasks I usually save the chrono for the next time, so I can continuously see the total accumulated time</i></span>  
+
+### <b>Cronómetros:</b>  <span style="color:grey">(<i>Chronometers (Timers)</i>)</span>
+* La aplicación por defecto se inicia en modo mono-cronómetro, aunque se puede activar el modo multi-cronómetro en el checkbox.  
+* Se pueden tener tantos cronómetros activos como se quiera.  
+---
+* <span style="color:grey"><i>The application by default starts in mono-chrono mode, although you can activate the multi-chrono mode at checkbox</i></span>  
+* <span style="color:grey"><i>You can have as many timers (chronos) as you want</i></span>  
+
+### <b>Informes:</b>  <span style="color:grey"><i>(Reports)</i></span>
+* Los informes resumen se basan todos en los tramos de tiempo generados por cada inicio, pausa y reanudación del Cronómetro.  
+* El estado del Cronómetro en ningún momento se tiene en cuenta para generar informes.  
+* Dada la posibilidad que se tiene de modificar un crono, existe la posibilidad de un descuadre entre el tiempo total del crono y el tiempo que sale en los informes.  
+No se recomienda la modificación de los cronos por este motivo, si se hace es sólo a efectos visuales.  
+* Exportación de informes a archivo CSV.  
+---
+* <span style="color:grey"><i>Summary reports are all based on the time frames generated by each start, pause, and restart of the timer</i></span>  
+* <span style="color:grey"><i>The status of the Timer (Chrono) is never taken into account when generating reports</i></span>  
+* <span style="color:grey"><i>Given the possibility that you can to modify a chrono, there is the possibility of an imbalance between the total time of the chrono and the time that appears in the reports</i></span>  
+* <span style="color:grey"><i>The modification of the chrono is not recommended for this reason, if you do so, is only for visual purposes</i></span>  
+* <span style="color:grey"><i>Exporting reports to CSV file</i></span>  
+
+---
+## Versiones  
 
 ### 14-04-2020 [v.1.0] Funcionalidad básica
 	La aplicación funciona correctamente, dándole buen uso, pero tiene inconsistencias a la hora de marcar/desmarcar el checkbox estando activos uno o varios de los cronos...(pendiente de corregir)
@@ -102,6 +169,10 @@ Es el usuario el que determinará la manera que más se adapte a sus necesidades
 	- [x] Hago el primer 'freeze' a la aplicación. Le paso el pyinstaller y la situo en /opt/CronoTareas:
 		`$ pyinstaller --onefile --icon=./images/cronotareas.png --windowed --add-data="CronoTareas.db:." CronoTareas.py`
 	- [x] Corregido pequeño error al Crear BD.: nombre de campo FechaHoraFina (mal), FechaHoraFin(bien).
-	- [ ] Crear un mejor texto descriptivo de esta aplicación para poner en este readme.md
+
+### 27-04-2020 [v.1.9] Corrección de errores
+	- [ ] Permitir editar la FechaHoraIni y Fin de las tareas.
+	- [ ] Iniciar CronoTareas con argumentos, para que cada vez que se inicie ponga en ejecución una tarea.
+	- [x] Crear un mejor texto descriptivo de esta aplicación para poner en este readme.md. Versión intl.(inglés) incluida.
 	- [ ] Poner un botón 'Help' con la ayuda de la app.
 	- [ ] Traducir la aplicación a versión internacional (inglés).

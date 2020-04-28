@@ -2,12 +2,13 @@
 # -*- coding: utf-8 -*-
 #
 """
- CronoTareas, v.1.8
+ CronoTareas, v.1.9
  Sencilla aplicación para cronometrar tiempos asociados a tareas.
  Creada usando Python 3.6.7 + PyQt5
     Fecha Inicio: 14-04-2020
     Fecha Fin (v.1.8): 26-04-2020
     Tiempo empleado: 13 días, a 4 horas/día (aprox.) = 52 horas (más o menos...)
+    Es mi segunda aplicación hecha con PyQt5
     Si hubiese tenido CronoTareas, sabría el tiempo exacto que me llevó.
 
  Copyright April, 2020 Fer <donanpher@gmail.com>
@@ -40,7 +41,7 @@ __author__ = "Fernando Souto"
 __email_ = "donanpher@gmail.com"
 __copyright__ = "Copyright (c) April 2020 Fernando Souto"
 __license__ = "GPLv3"
-__version__ = "1.8"
+__version__ = "1.9"
 #########################################################
 
 BaseDeDatos = "CronoTareas.db"
@@ -85,6 +86,7 @@ class AppWindow(QMainWindow):
 
         # Chequeo inicial de la BD.: se comprueba que si hay un campo FechaHoraIni con datos, no haya uno FechaHoraFin sin ellos, y si lo hay igualar ambas fechas
         # Esto puede suceder si durante el funcionamiento de un crono, el usuario sale de la app. sin más, lo que después puede provocar un error en los listados.
+        # ya no!: si el usuario cierra en la X, se le advierte, y si sigue pasando del tema, le pongo yo la fecha del momento.
         self.ComprobarBD("") # no le pasamos ninguna fecha porque no la sabemos
 
         # Inicialización de la lista de tareas
@@ -124,7 +126,7 @@ class AppWindow(QMainWindow):
                 miQuery = "INSERT INTO Tareas (NombreTarea, Tag, FechaAlta, Crono) VALUES (?, ?, ?, ?)"
                 cur.execute(miQuery, (modifTarea, modifTag, self.strAhora, modifDias + modifHora,))
                 conn.commit()
-                # ahora insertamos un item en la lista con esta alta, pero antes necesitamos saber cuál es el ID asignado.
+                # ahora insertamos un item en la lista con esta alta, pero antes necesitamos saber cuál es el ID asignado (es autonumérico).
                 miQuery = "SELECT Max(IDTarea) FROM Tareas"
                 cur.execute(miQuery)
                 elRegistro = cur.fetchone()
@@ -451,7 +453,7 @@ class AppWindow(QMainWindow):
                 unaColumna.setTextAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignVCenter) # alineación derecha
                 self.ui.tableWidgetInformes.setItem(recNum, 4, unaColumna)
 
-            # Geometría de la tabla
+            # Geometría de la tabla (distinta en función del informe seleccionado)
             if campo == "Tag":
                 self.ui.tableWidgetInformes.setHorizontalHeaderLabels(("Tarea","Tag","Inicio","Fin","Tiempo"))
                 self.ui.tableWidgetInformes.setColumnWidth(0,190) # ancho columna Tarea
@@ -474,7 +476,7 @@ class AppWindow(QMainWindow):
             conn.close()
 
     def Exportar(self):
-        # Exportar datos del informe actualmente seleccionado, a un archivo de texto .csv
+        # Exportar datos del informe actualmente seleccionado, a un archivo de texto .csv (el csv lo hago yo a pelo, no uso ningún import...es tan simple...)
         try: # primero intentamos acceder al atributo de clase self.queryInformes, que no existirá si no se ha ejecutado antes un informe
             if self.queryInformes:
                 pass
@@ -483,7 +485,7 @@ class AppWindow(QMainWindow):
             options |= QFileDialog.DontUseNativeDialog
             fichero, _ = QFileDialog.getSaveFileName(self,"QFileDialog.getSaveFileName()","","Text Files (*.csv)", options=options)
             if fichero:
-                print(fichero) # nos devuelve la ruta completa + nombre de archivo
+                #print(fichero) # nos devuelve la ruta completa + nombre de archivo
                 try: # si ya se ha ejecutado el informe, iniciamos la conexión a la BD.
                     conn = sqlite3.connect(BaseDeDatos)
                     cur = conn.cursor()
@@ -494,7 +496,7 @@ class AppWindow(QMainWindow):
                     recNum = 0
                     contenidoFichero = "" # aqui es donde vamos a meter todo lo que vamos a escribir en el fichero
                     for jj in nombresDeCampo: # añadimos una primera fila con los nombres de los campos
-                        contenidoFichero += jj + "\t"
+                        contenidoFichero += jj + "\t" # usamos el tabulador como delimitador de campos
                     contenidoFichero += "\n"
                     for registro in registros: # recorremos todos los registros
                         for campo in registro: # recorremos todos los campos
@@ -534,6 +536,7 @@ class AppWindow(QMainWindow):
     def ComprobarBD(self, ahora):
         # Chequeo inicial de la BD.: se comprueba que si hay un campo FechaHoraIni con datos, no haya uno FechaHoraFin sin ellos, y si lo hay igualar ambas fechas
         # Esto puede suceder si durante el funcionamiento de un crono, el usuario sale de la app. sin más, lo que después puede provocar un error en los listados.
+        # Ya he tomado medidas para que esto no pase, pero por si las moscas...
         try:
             conn = sqlite3.connect(BaseDeDatos)
             cur = conn.cursor()
@@ -562,7 +565,8 @@ class AppWindow(QMainWindow):
         self.move(qr.topLeft())
     
     def closeEvent(self, event):
-        # Si el usuario cierra en la X la aplicación, le pedimos confirmación sólo si hay un crono activo.
+        # Si el usuario cierra en la X la aplicación, le pedimos confirmación sólo si hay un crono activo. 
+        # Si no, pues nada que objetar...(no le voy a andar tocando los webos para confirmar que quiere cerrar, ya, sin preguntas, la aplicación)
         if MiTimer.hayUnCronoActivo: # si además hay un crono activo, se lo advertimos
             advertencia = "Atención: hay un Crono que sigue activo\n\n"
 
@@ -740,7 +744,7 @@ class CustomDialogInformes(QDialog):
             QMessageBox.about(self, "Información", "No hay ningún Tag en la Base de Datos.")
 
     def CargarElementos(self, campo):
-        # Lo uso para cargar el Combo con los Tags distintos que haya en la BD.
+        # Lo uso en Informes para cargar el Combo con los Tags distintos que haya en la BD.
         listaValores = []
         try:
             conn = sqlite3.connect(BaseDeDatos)
@@ -760,7 +764,7 @@ class CustomDialogInformes(QDialog):
 
 
 class MiTimer(QWidget):
-    # MiTimer es cada uno de los listItems (filas) que hay en el listWidget
+    # MiTimer es cada uno de los listItems (filas) que hay en el listWidget. Se instancia tantas veces como tareas haya en la lista.
     # A su vez, cada listItem se compone de varios widgets: 
     # el ID, la Tarea, el Tag, botón Iniciar/Pausar/Continue, botón Reset, el LCDDisplay (Crono) y labelCrono (un duplicado del Crono).
     hayUnCronoActivo = False # para controlar si hay activo algún crono y poder permitir un segundo o no en función del checkbox
@@ -807,7 +811,7 @@ class MiTimer(QWidget):
         self.botonIniciar.setIcon(self.icon1)        
         self.botonIniciar.clicked.connect(self.IniciarCrono)
         #---------------------------------------------------
-        # Pensé que iba a necesitar Threads, pero parece que no hacen falta
+        # Pensé que iba a necesitar Threads, pero parece que no hacen falta (una complicación menos!)
         #t = Thread(target=self.IniciarCrono)
         #t.start()
         self.botonParar= QPushButton(" Stop")
@@ -827,13 +831,13 @@ class MiTimer(QWidget):
         self.miSegundoDisplay.display(self.miCrono)
         #---------------------------------------------------
         # Añado un label que va a contener lo mismo que el Crono, pero no va a ser visible.
-        # El motivo es para poder acceder a su valor, porque no consigo acceder al valor del Crono.
+        # El motivo es para poder acceder a su valor, porque no consigo acceder al valor del Crono, ni con .value ni con hostias benditas...
         self.labelCrono = QLabel(self.miLabelCrono)
         self.labelCrono.setVisible(False) # oculto este label, porque sólo lo tengo para acceder a su información, que es la misma que el crono.
         #self.labelCrono.setFrameShape(QFrame.StyledPanel)
         #---------------------------------------------------
         #self.showlcd()
-        self.timer.timeout.connect(self.showlcd) # método que se ejecuta con cada Timer
+        self.timer.timeout.connect(self.showlcd) # método que se ejecuta con cada Timer (1 seg.)
         self.miLayOut = QHBoxLayout()
         self.miLayOut.addWidget(self.IDTarea)
         self.miLayOut.addWidget(self.NombreTarea)
@@ -848,7 +852,7 @@ class MiTimer(QWidget):
         # La idea de todo esto es que si se está en modo monocrono, sólo se pueda tener activo uno, los que están en pausa no están activos.
         # En el modo multicrono, se permite que estén activos todos los cronos que se quieran.
         # Lo que no se puede dar es que, si se está en modo multicrono y con varios cronos activos, se pueda pasar al modo monocrono.
-        # Condición:
+        # Condición: (telita lo que me costó llegar a ella...)
         # Si se permiten varios cronos simultáneos, o si no se permiten pero que sólo haya uno activo o que el pulsado sea de Pausa o Continuar
         # (sólo esta condición me llevó unas cuantas horas/sesiones elaborarla)
         if (w.PermitirCronosSimultaneos) or (
@@ -912,7 +916,7 @@ class MiTimer(QWidget):
 
         # Si el check está en modo monocrono, se deja habilitado para permitir conmutar a modo multicrono
         # Si el check está en modo multicrono, se deshabilita si hay más de un crono activo
-        # ***PENDIENTE: Pendiente de comprobar más a fondo toda la casuística ...
+        # ***PENDIENTE: Pendiente de comprobar más a fondo toda la casuística ... (no sé todavía si podría quedar algún resquicio por el que me puedan romper el tema)
         if w.PermitirCronosSimultaneos: # modo multicrono
             if MiTimer.numCronosActivos > 1:
                 w.ui.checkBoxMultiCrono.setEnabled(False)
@@ -923,8 +927,8 @@ class MiTimer(QWidget):
 
     def PararCrono(self):
         # Botón Stop: se pone a cero, pero preguntamos si desea guardar este crono para más adelante
-        MiTimer.hayUnCronoActivo = False
-        MiTimer.numCronosActivos -= 1
+        MiTimer.hayUnCronoActivo = False # los en pausa no se consideran activos
+        MiTimer.numCronosActivos -= 1 # restamos 1 al número de cronos activos (los en pausa sí que se consideran activos en este caso)
         if MiTimer.numCronosActivos < 0:
             MiTimer.numCronosActivos = 0
         
@@ -1068,7 +1072,15 @@ class MiTimer(QWidget):
             QMessageBox.about(self, "Información", str(e))
         finally:
             conn.close()
-
+    
+    """
+    WARNING!!!
+    GENERAL FAILURE READING HARD DISK!
+    (...)
+    ¿Quién coño es el General Failure, y qué hace leyendo mi disco duro?
+    (...)
+    """
+    
     def ConvertirCadena_a_Segundos(self, cadena):
         # Convertimos una cadena de fecha/hora a segundos
         # Este procedimiento es necesario para poder restaurar un crono guardado de una vez anterior (es llamado desde el botón Start)
@@ -1120,3 +1132,22 @@ if __name__=="__main__":
     w.show()
     sys.exit(app.exec_())
 
+
+"""
+#
+﻿#                         ''~``
+#                        ( o o )
+#+------------------.oooO--(_)--Oooo.------------------+
+#|                                                     |
+#|                                                     |
+#|                  Fernando Souto                     |
+#|               donanpher@gmail.com                   |
+#|                    Abril 2020                       |
+#|                                                     |
+#|                    .oooO                            |
+#|                    (   )   Oooo.                    |
+#+---------------------\ (----(   )--------------------+
+#                       \_)    ) /
+#                             (_/
+#
+"""
