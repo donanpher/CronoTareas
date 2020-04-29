@@ -124,3 +124,6 @@ dmypy.json
 .pyre/
 
 pruebaBD.py
+CronoTareas.db
+README_versiones.md
+
