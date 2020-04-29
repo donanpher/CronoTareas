@@ -126,6 +126,4 @@ dmypy.json
 pruebaBD.py
 CronoTareas.db
 README_versiones.md
-./vscode
-
-
+.vscode/
