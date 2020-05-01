@@ -19,17 +19,17 @@ Abril 2020 (durante la cuarentena del #Coronavirus #SARS-CoV-2 #Covid-19)
 ![Screenshot](./images/Screenshot_CronoTareas.png)
 ---
 ## Instalación en Linux <span style="color:grey"><i>(Linux installation)</i></span>
-* <a href="https://drive.google.com/file/d/12bsgKWdRtz8Jh0I1hjUgTedcNUJPB790/view?usp=sharing">Descargar CronoTareas.zip (46 MB)</a>
+* <a href="https://drive.google.com/file/d/1mXFKrDOdt2htAmqc4TxUKWyaaVAlYvpy/view?usp=sharing">Descargar CronoTareas.zip (46 MB)</a>
 * Descomprimelo en una nueva carpeta, por ejemplo /opt/cronotareas/
 * Ejecuta CronoTareas (es un único fichero ejecutable con todas las dependencias ya incluidas)
 ---
-* <span style="color:grey"><i><a href="https://drive.google.com/file/d/12bsgKWdRtz8Jh0I1hjUgTedcNUJPB790/view?usp=sharing">Download CronoTareas.zip (46 MB)</a></i> </span>  
+* <span style="color:grey"><i><a href="https://drive.google.com/file/d/1mXFKrDOdt2htAmqc4TxUKWyaaVAlYvpy/view?usp=sharing">Download CronoTareas.zip (46 MB)</a></i> </span>  
 * <span style="color:grey"><i>Unzip it into a new folder, for example /opt/cronotareas/</i> </span>  
 * <span style="color:grey"><i>Run CronoTareas (it's a single file with all dependencies included)</i> </span>  
 ---
 ## Dependencias:  <span style="color:grey"><i>(Dependencies)</i></span>
 Python 3.6.7, PyQt5, SQLite 3  
-
+<a href="https://github.com/donanpher/CronoTareas">Source Code on GitHub</a>
 ---
 ## Descripción General <span style="color:grey"><i>(General Description)</i></span>
 Aplicación para llevar el control de tiempo de distintas tareas.  
