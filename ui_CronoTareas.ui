@@ -510,6 +510,11 @@
         <string>02 Detalle de Tags por Tarea</string>
        </property>
       </item>
+      <item>
+       <property name="text">
+        <string>03 Todas las Tareas (por Fecha inicio)</string>
+       </property>
+      </item>
      </widget>
      <widget class="QTableWidget" name="tableWidgetInformes">
       <property name="geometry">

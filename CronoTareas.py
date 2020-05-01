@@ -31,7 +31,7 @@ from sqlite3 import Error
 from datetime import datetime, timedelta
 from PyQt5.QtWidgets import QMainWindow, QApplication, QWidget, QListWidget, QLabel, QPushButton, QListWidgetItem, \
     QHBoxLayout, QLCDNumber, QMessageBox, QDialog, QDialogButtonBox, QVBoxLayout, QLineEdit, QFrame, QDesktopWidget, \
-    QSpinBox, QTimeEdit, QComboBox, QTableWidgetItem, QFileDialog
+    QSpinBox, QTimeEdit, QComboBox, QTableWidgetItem, QFileDialog, QDateEdit
 from PyQt5 import QtCore
 from PyQt5 import QtGui
 from ui_CronoTareas import *
@@ -380,7 +380,7 @@ class AppWindow(QMainWindow):
             dlg.miEtiqueta.setText("Selecciona el Tag")
             if dlg.exec_():
                 elemElegido = dlg.miCombo.itemText(dlg.miCombo.currentIndex())
-                self.InformesDetalle("Tag", elemElegido)
+                self.InformesDetalle("Tag", elemElegido, "")
                 #self.InformesDetalle("Tag", elemElegido)
             else: # Ha pulsado Cancel!
                 pass
@@ -391,15 +391,27 @@ class AppWindow(QMainWindow):
             dlg.miEtiqueta.setText("Selecciona la Tarea")
             if dlg.exec_():
                 elemElegido = dlg.miCombo.itemText(dlg.miCombo.currentIndex())
-                self.InformesDetalle("NombreTarea", elemElegido)
+                self.InformesDetalle("NombreTarea", elemElegido, "")
             else: # Ha pulsado Cancel!
                 pass
                 #self.ui.statusbar.showMessage("Cancelado por usuario", 5000)
+        elif informeSeleccionado[:2] == "03": # Todas las Tareas por FechaInicio
+            # Abrimos un diálogo para pedir los datos del Tag
+            dlg = CustomDialogInformes2(self)
+            #dlg.miEtiqueta.setText("Selecciona Fecha Desde-Hasta")
+            if dlg.exec_():
+                fechaIni = dlg.fechaDesde.date()
+                fechaFin = dlg.fechaHasta.date()
+                self.InformesDetalle("TodasTareas", fechaIni.toString("yyyy-MM-dd"), fechaFin.toString("yyyy-MM-dd"))
+            else: # Ha pulsado Cancel!
+                pass
+                #self.ui.statusbar.showMessage("Cancelado por usuario", 5000)
+        
         else: #"--- Selecciona un informe ---":
             pass
             #QMessageBox.about(self, "Información", informeSeleccionado)
 
-    def InformesDetalle(self, campo, valor):
+    def InformesDetalle(self, campo, valor, valor2):
         try:
             conn = sqlite3.connect(BaseDeDatos)
             cur = conn.cursor()
@@ -409,14 +421,20 @@ class AppWindow(QMainWindow):
                                 FROM Tareas T, DetalleTareas DT ON T.IDTarea = DT.IDTarea \
                                 WHERE T.Tag = ? \
                                 ORDER BY T.FechaAlta, DT.FechaHoraInicio"
-            else:
+            elif campo == "NombreTarea":
                 self.queryInformes = "SELECT T.Tag, T.NombreTarea, DT.FechaHoraInicio, DT.FechaHoraFin, \
                                 Cast ((JulianDay(DT.FechaHoraFin) - JulianDay(DT.FechaHoraInicio)) * 24 * 60 * 60 As Integer) Segundos \
                                 FROM Tareas T, DetalleTareas DT ON T.IDTarea = DT.IDTarea \
                                 WHERE T.NombreTarea = ? \
                                 ORDER BY T.FechaAlta, DT.FechaHoraInicio"
+            else: # TodasTareas (Todas las Tareas por FechaInicio)
+                self.queryInformes = "SELECT T.NombreTarea, T.Tag, DT.FechaHoraInicio, DT.FechaHoraFin, \
+                                Cast ((JulianDay(DT.FechaHoraFin) - JulianDay(DT.FechaHoraInicio)) * 24 * 60 * 60 As Integer) Segundos \
+                                FROM Tareas T, DetalleTareas DT ON T.IDTarea = DT.IDTarea \
+                                WHERE DT.FechaHoraInicio BETWEEN ? AND ? \
+                                ORDER BY DT.FechaHoraInicio"
 
-            self.tuplaQuery = (valor,)
+            self.tuplaQuery = (valor, valor2,)
             cur.execute(self.queryInformes, self.tuplaQuery)
             registros = cur.fetchall()
             totalReg = len(registros) # total de registros de la query
@@ -454,18 +472,18 @@ class AppWindow(QMainWindow):
                 self.ui.tableWidgetInformes.setItem(recNum, 4, unaColumna)
 
             # Geometría de la tabla (distinta en función del informe seleccionado)
-            if campo == "Tag":
-                self.ui.tableWidgetInformes.setHorizontalHeaderLabels(("Tarea","Tag","Inicio","Fin","Tiempo"))
-                self.ui.tableWidgetInformes.setColumnWidth(0,190) # ancho columna Tarea
-                self.ui.tableWidgetInformes.setColumnWidth(1,100) # ancho columna Tag
-            else:
+            if campo == "NombreTarea":
                 self.ui.tableWidgetInformes.setHorizontalHeaderLabels(("Tag","Tarea","Inicio","Fin","Tiempo"))
                 self.ui.tableWidgetInformes.setColumnWidth(0,100) # ancho columna Tag
                 self.ui.tableWidgetInformes.setColumnWidth(1,190) # ancho columna Tarea
+            else: #campo == "Tag" or "TodasTareas"
+                self.ui.tableWidgetInformes.setHorizontalHeaderLabels(("Tarea","Tag","Inicio","Fin","Tiempo"))
+                self.ui.tableWidgetInformes.setColumnWidth(0,190) # ancho columna Tarea
+                self.ui.tableWidgetInformes.setColumnWidth(1,100) # ancho columna Tag
             
             self.ui.tableWidgetInformes.setColumnWidth(2,150) # ancho columna HoraInicio
             self.ui.tableWidgetInformes.setColumnWidth(3,150) # ancho columna HoraFin
-            self.ui.tableWidgetInformes.setColumnWidth(4,100) # ancho columna Tiempo
+            self.ui.tableWidgetInformes.setColumnWidth(4,80) # ancho columna Tiempo
             self.ui.tableWidgetInformes.resizeRowsToContents() # ajuste alto de fila a su contenido
             self.ui.tabWidgetTareas.update()
             #self.ui.tableWidgetInformes.horizontalHeaderItem().setTextAlignment(AlignHCenter)
@@ -742,6 +760,35 @@ class CustomDialogInformes(QDialog):
             self.setLayout(self.layout)
         else:
             QMessageBox.about(self, "Información", "No hay ningún Tag en la Base de Datos.")
+
+class CustomDialogInformes2(QDialog):
+    # Este custom dialog lo uso pedir datos para el informe3 que pide fechas desde-hasta
+    def __init__(self, *args, **kwargs):
+        super(CustomDialogInformes2, self).__init__(*args, **kwargs)
+        self.setWindowTitle("Introducir datos para Informe")
+        self.labelFechaDesde = QLabel("Fecha Desde")
+        self.fechaDesde = QDateEdit()
+        self.fechaDesde.setDisplayFormat("yyyy-MM-dd")
+        self.fechaDesde.setDate(QtCore.QDate.currentDate())
+        self.labelFechaHasta = QLabel("Fecha Hasta")
+        self.fechaHasta = QDateEdit()
+        self.fechaHasta.setDisplayFormat("yyyy-MM-dd")
+        self.fechaHasta.setDate(QtCore.QDate.currentDate())
+
+        QBtn = QDialogButtonBox.Ok | QDialogButtonBox.Cancel
+        
+        self.buttonBox = QDialogButtonBox(QBtn)
+        self.buttonBox.accepted.connect(self.accept)
+        self.buttonBox.rejected.connect(self.reject)
+
+        self.layout = QVBoxLayout()
+        self.layout.addWidget(self.labelFechaDesde)
+        self.layout.addWidget(self.fechaDesde)
+        self.layout.addWidget(self.labelFechaHasta)
+        self.layout.addWidget(self.fechaHasta)
+        self.layout.addWidget(self.buttonBox)
+        self.setLayout(self.layout)
+
 
     def CargarElementos(self, campo):
         # Lo uso en Informes para cargar el Combo con los Tags distintos que haya en la BD.
