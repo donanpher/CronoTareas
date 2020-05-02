@@ -19,11 +19,11 @@ Abril 2020 (durante la cuarentena del #Coronavirus #SARS-CoV-2 #Covid-19)
 ![Screenshot](./images/Screenshot_CronoTareas.png)
 ---
 ## Instalación en Linux <span style="color:grey"><i>(Linux installation)</i></span>
-* <a href="https://drive.google.com/file/d/1mXFKrDOdt2htAmqc4TxUKWyaaVAlYvpy/view?usp=sharing">Descargar CronoTareas.zip (46 MB)</a>
+* <a href="https://drive.google.com/file/d/1kf0J4eLd2sKvZ17ear96MTD32lh-8wq-/view?usp=sharing">Descargar CronoTareas.zip (46 MB)</a>
 * Descomprimelo en una nueva carpeta, por ejemplo /opt/cronotareas/
 * Ejecuta CronoTareas (es un único fichero ejecutable con todas las dependencias ya incluidas)
 ---
-* <span style="color:grey"><i><a href="https://drive.google.com/file/d/1mXFKrDOdt2htAmqc4TxUKWyaaVAlYvpy/view?usp=sharing">Download CronoTareas.zip (46 MB)</a></i> </span>  
+* <span style="color:grey"><i><a href="https://drive.google.com/file/d/1kf0J4eLd2sKvZ17ear96MTD32lh-8wq-/view?usp=sharing">Download CronoTareas.zip (46 MB)</a></i> </span>  
 * <span style="color:grey"><i>Unzip it into a new folder, for example /opt/cronotareas/</i> </span>  
 * <span style="color:grey"><i>Run CronoTareas (it's a single file with all dependencies included)</i> </span>  
 ---
