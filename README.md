@@ -5,10 +5,10 @@
 ## Cronometra la duración de tus Tareas.  
 ## <span style="color:grey"><i>Time the duration of your Tasks</i></span>
 Hecha en Python 3.6.7 + PyQt5 + SQLite 3  
-Versión para Linux, testada únicamente en Ubuntu Budgie 18.04.4 LTS  
+Versión 2.0 para Linux, testada únicamente en Ubuntu Budgie 18.04.4 LTS  
 <span style="color:grey">
 <i>Made with Python 3.6.7 + PyQt5 + SQLite 3</i>  
-<i>Linux version, tested only on Ubuntu Budgie 18.04.4 LTS</i>  
+<i>Linux version 2.0, tested only on Ubuntu Budgie 18.04.4 LTS</i>  
 </span>  
 Fernando Souto (donanpher@gmail.com)  
 A Coruña (Galicia), Spain  
@@ -19,11 +19,11 @@ Abril 2020 (durante la cuarentena del #Coronavirus #SARS-CoV-2 #Covid-19)
 ![Screenshot](./images/Screenshot_CronoTareas.png)
 ---
 ## Instalación en Linux <span style="color:grey"><i>(Linux installation)</i></span>
-* <a href="https://drive.google.com/file/d/1kf0J4eLd2sKvZ17ear96MTD32lh-8wq-/view?usp=sharing">Descargar CronoTareas.zip (46 MB)</a>
+* <a href="https://drive.google.com/file/d/1WHXcHJe4g5oQ1q428-GJoPRjbku5-T_-/view?usp=sharing">Descargar CronoTareas.zip (46 MB)</a>
 * Descomprimelo en una nueva carpeta, por ejemplo /opt/cronotareas/
 * Ejecuta CronoTareas (es un único fichero ejecutable con todas las dependencias ya incluidas)
 ---
-* <span style="color:grey"><i><a href="https://drive.google.com/file/d/1kf0J4eLd2sKvZ17ear96MTD32lh-8wq-/view?usp=sharing">Download CronoTareas.zip (46 MB)</a></i> </span>  
+* <span style="color:grey"><i><a href="https://drive.google.com/file/d/1WHXcHJe4g5oQ1q428-GJoPRjbku5-T_-/view?usp=sharing">Download CronoTareas.zip (46 MB)</a></i> </span>  
 * <span style="color:grey"><i>Unzip it into a new folder, for example /opt/cronotareas/</i> </span>  
 * <span style="color:grey"><i>Run CronoTareas (it's a single file with all dependencies included)</i> </span>  
 ---
@@ -45,6 +45,8 @@ Se pueden añadir tantas tareas como se quiera, iniciarlas, pausarlas o detenerl
 * Cada combinación de ('Start' + 'Pause') o ('Continue' + 'Pause') genera un tramo de tiempo que queda almacenado en la base de datos.  
 * En la pestaña de Informes se pueden consultar todos estos tramos de tiempo.  
 * La elección entre guardar el Crono o no, no tiene repercusión en los informes. Es sólo a efectos visuales.  
+* Se puede iniciar la aplicación con un argumento (el ID de la Tarea) para que dicha Tarea se inicie automáticamente con la aplicación.  
+Por ejemplo: `$/opt/CronoTareas/CronoTareas 12` inicia la aplicación y pone en marcha el crono de la Tarea con ID=12
 ---
 * <span style="color:grey"><i>Button `Start`: Starts a task and saves its date & time</i> </span>  
 * <span style="color:grey"><i>Button `Pause`: Pauses the task and saves its date & time</i></span>  
@@ -53,6 +55,8 @@ Se pueden añadir tantas tareas como se quiera, iniciarlas, pausarlas o detenerl
 * <span style="color:grey"><i>Each combination of ('Start' + 'Pause') or ('Continue' + 'Pause') generates a stretch of time that is stored in the database</i></span>  
 * <span style="color:grey"><i>In the Reports tab (Informes) you can see all these time sections</i></span>  
 * <span style="color:grey"><i>The choice between saving the Chrono or not has no impact on the reports. It is only for visual purposes.</i></span>  
+* <span style="color:grey"><i>You can start the application with an argument (the Task ID) so that the Task starts automatically with the application.</i></span>  
+<span style="color:grey"><i>For example: `$/opt/CronoTareas/CronoTareas 12` start the application and starts the Task Chrono with ID = 12</i></span> 
   
 ### <b>Tareas/Tags:</b>  <span style="color:grey"><i>(Tasks/Tags)</i></span>
 * Nombre de Tarea: Se refiere a una tarea particular y concreta dentro de un proyecto. Por ejemplo, elaborar documentación, codificar conexión a base de datos, etc.  

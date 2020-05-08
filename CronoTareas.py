@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 """
- CronoTareas, v.1.9
+ CronoTareas, v.2.0
  Sencilla aplicación para cronometrar tiempos asociados a tareas.
  Creada usando Python 3.6.7 + PyQt5
     Fecha Inicio: 14-04-2020
@@ -31,7 +31,7 @@ from sqlite3 import Error
 from datetime import datetime, timedelta
 from PyQt5.QtWidgets import QMainWindow, QApplication, QWidget, QListWidget, QLabel, QPushButton, QListWidgetItem, \
     QHBoxLayout, QLCDNumber, QMessageBox, QDialog, QDialogButtonBox, QVBoxLayout, QLineEdit, QFrame, QDesktopWidget, \
-    QSpinBox, QTimeEdit, QComboBox, QTableWidgetItem, QFileDialog, QDateEdit
+    QSpinBox, QTimeEdit, QComboBox, QTableWidgetItem, QFileDialog, QDateEdit, QCheckBox, qApp
 from PyQt5 import QtCore
 from PyQt5 import QtGui
 from ui_CronoTareas import *
@@ -41,13 +41,13 @@ __author__ = "Fernando Souto"
 __email_ = "donanpher@gmail.com"
 __copyright__ = "Copyright (c) April 2020 Fernando Souto"
 __license__ = "GPLv3"
-__version__ = "1.9"
+__version__ = "2.0"
 #########################################################
 
 BaseDeDatos = "CronoTareas.db"
 
 class AppWindow(QMainWindow):
-    def __init__(self):
+    def __init__(self, argus):
         super().__init__()
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
@@ -91,8 +91,23 @@ class AppWindow(QMainWindow):
 
         # Inicialización de la lista de tareas
         miTupla = () # la tupla va vacía
-        self.MostrarTabla("SELECT * FROM Tareas ORDER BY FechaAlta DESC, IDTarea DESC;", miTupla)
+        self.MostrarTabla("SELECT * FROM Tareas WHERE Mostrar = 1 ORDER BY FechaAlta DESC, IDTarea DESC;", miTupla)
         #self.ui.labelTotalTareas.setText("Total Tareas: " + str(self.ui.listWidgetTareas.count()))
+        
+    def PonerEnMarchaTarea(self, idEjecutar):
+        # Si vienen argumentos con la app, o sea, el ID de la Tarea que queremos poner en marcha según se inicie la app.
+        # hay que recorrer todo el listWidget hasta encontrar ese ID, posicionarnos, y pulsar el botón.
+        totalFilas = self.ui.listWidgetTareas.count()
+        for n in range(0, totalFilas):
+            self.ui.listWidgetTareas.setCurrentRow(n)
+            ItemModificar = self.ui.listWidgetTareas.currentItem()
+            miWidget = self.ui.listWidgetTareas.itemWidget(ItemModificar)
+            # estos son los datos de la fila seleccionada actualmente
+            elID = miWidget.IDTarea.text()
+            if int(elID) == int(idEjecutar):
+                miWidget.botonIniciar.click() # pulsamos el botón 'Start' correspondiente al ID de tarea con que se ha iniciado la app.
+                break
+
 
     def CronosSimultaneos(self):
         # Esto muestra en la barra de estado el modo en el que nos encontramos: monoCrono (por defecto) o multiCrono (seleccionable)
@@ -242,33 +257,53 @@ class AppWindow(QMainWindow):
             laTarea = miWidget.NombreTarea.text()
             elTag = miWidget.Tag.text()
             laNota = "IDTarea: " + elID + "\nTarea: " + laTarea + "\nTag: " + elTag
-            # llamamos a un diálogo de Aceptar/Cancelar para confirmar eliminación
-            buttonReply = QMessageBox.question(self, 'Eliminar Tarea', "¿Quieres eliminar esta Tarea?:\n" + laNota, QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+            
+            # llamamos a un diálogo de Aceptar/Cancelar (con checkBox!!!) para confirmar eliminación
+            self.msgBox = QMessageBox()
+            self.msgBox.setText("Eliminar Tarea")
+            self.msgBox.setInformativeText("¿Quieres eliminar de la lista esta Tarea?:\n" + laNota)
+            self.msgBox.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+            self.msgBox.setIcon(QMessageBox.Question)
+            eliminarEnBD = QCheckBox("Eliminar también en la Base de Datos")
+            self.msgBox.setCheckBox(eliminarEnBD)
+            buttonReply = self.msgBox.exec_()
+            #buttonReply = QMessageBox.question(self, 'Eliminar Tarea', "¿Quieres eliminar esta Tarea?:\n" + laNota, QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+            # msg.setIcon(QMessageBox.Information,QMessageBox.Question,QMessageBox.Warning,QMessageBox.Critical)            
             if buttonReply == QMessageBox.Yes:
-                try:
-                    conn = sqlite3.connect(BaseDeDatos)
-                    cur = conn.cursor()
-                    # A pesar de tener puesto en la tabla DetalleTareas, la eliminación en cascada, no veo que funcione.
-                    # Por tanto, tengo que hacerlo manualmente desde aqui.
-                    # Primero, en DetalleTareas
-                    #miQuery = "DELETE FROM DetalleTareas WHERE IDTarea = " + elID
-                    miQuery = "DELETE FROM DetalleTareas WHERE IDTarea = ?"
-                    cur.execute(miQuery, (elID,))
-                    conn.commit()
-                    # Después, en Tareas
-                    miQuery = "DELETE FROM Tareas WHERE IDTarea = ?"
-                    cur.execute(miQuery, (elID,))
-                    conn.commit()
-                    # eliminamos de la lista sólo el item actual, sin necesidad de vaciar lista y volver a cargarla. Así los cronos pueden seguir funcionando.
-                    self.ui.listWidgetTareas.takeItem(filaModificar)
-                    # ahora borramos todo el contenido del listWidget para volver a cargarlo con los datos actualizados
-                    # self.ui.listWidgetTareas.clear()
-                    # self.MostrarTabla("SELECT * FROM Tareas ORDER BY FechaAlta DESC, IDTarea DESC;", ())
-                    self.ui.statusbar.showMessage("Tarea eliminada", 5000)
-                except Error as e:
-                    self.ui.statusbar.showMessage(str(e), 10000)
-                finally:
-                    conn.close()
+                # eliminamos de la lista sólo el item actual, sin necesidad de vaciar lista y volver a cargarla. Así los cronos pueden seguir funcionando.
+                self.ui.listWidgetTareas.takeItem(filaModificar)
+                conn = sqlite3.connect(BaseDeDatos)
+                cur = conn.cursor()
+                # Si además también hay que eliminarlo de la BD.
+                if self.msgBox.checkBox().isChecked():
+                    try:
+                        # A pesar de tener puesto en la tabla DetalleTareas, la eliminación en cascada, no veo que funcione.
+                        # Por tanto, tengo que hacerlo manualmente desde aqui.
+                        # Primero, en DetalleTareas
+                        #miQuery = "DELETE FROM DetalleTareas WHERE IDTarea = " + elID
+                        miQuery = "DELETE FROM DetalleTareas WHERE IDTarea = ?"
+                        cur.execute(miQuery, (elID,))
+                        conn.commit()
+                        # Después, en Tareas
+                        miQuery = "DELETE FROM Tareas WHERE IDTarea = ?"
+                        cur.execute(miQuery, (elID,))
+                        conn.commit()
+                    except Error as e:
+                        self.ui.statusbar.showMessage(str(e), 10000)
+                    finally:
+                        conn.close()
+                else: # se elimina de la lista, pero no de la BD.
+                    # Hay que actualizar en la BD. para que no se muestre en la lista más
+                    try:
+                        miQuery = "UPDATE Tareas SET Mostrar = ? WHERE IDTarea = ?"
+                        cur.execute(miQuery, (0, elID,))
+                        conn.commit()
+                    except Error as e:
+                        self.ui.statusbar.showMessage(str(e), 10000)
+                    finally:
+                        conn.close()
+
+                self.ui.statusbar.showMessage("Tarea eliminada", 5000)
             else:
                 self.ui.statusbar.showMessage("Eliminar Tarea Cancelado", 5000)
 
@@ -289,7 +324,7 @@ class AppWindow(QMainWindow):
                     cur = conn.cursor()
                     tuplaBuscar = ("%" + queBuscar + "%",)
                     #miQuery = "SELECT * FROM Tareas WHERE " + campoDondeBuscar + " LIKE '%" + queBuscar + "%' ORDER BY FechaAlta DESC, IDTarea DESC;"
-                    miQuery = "SELECT * FROM Tareas WHERE " + campoDondeBuscar + " LIKE ? ORDER BY FechaAlta DESC, IDTarea DESC"
+                    miQuery = "SELECT * FROM Tareas WHERE " + campoDondeBuscar + " LIKE ? AND Mostrar = 1 ORDER BY FechaAlta DESC, IDTarea DESC"
                     cur.execute(miQuery, tuplaBuscar)
                     #cur.execute(miQuery)
                     registros = cur.fetchall()
@@ -314,7 +349,7 @@ class AppWindow(QMainWindow):
                 self.ui.statusbar.showMessage("Buscar Tarea Cancelado", 5000)
 
     def GuardarEstadoTareas(self):
-        # Esto de momento queda en Stand-by, pues creo que no lo voy a necesitar.
+        # ***** Esto de momento queda en Stand-by, pues creo que no lo voy a necesitar. *****
         # Cada vez que se hace un alta/modificación/eliminación, se hace un .clear (se vacía el listWidget) y se vuelve a cargar desde la BD.
         # Si hay cronos activos, al hacer lo anterior, se pierde la información del crono actual
         # Por todo esto, hay que guardar el estado actual de todos los cronos antes de recargar la lista.
@@ -416,25 +451,27 @@ class AppWindow(QMainWindow):
             conn = sqlite3.connect(BaseDeDatos)
             cur = conn.cursor()
             if campo == "Tag":
+                self.tuplaQuery = (valor,)
                 self.queryInformes = "SELECT T.NombreTarea, T.Tag, DT.FechaHoraInicio, DT.FechaHoraFin, \
-                                Cast ((JulianDay(DT.FechaHoraFin) - JulianDay(DT.FechaHoraInicio)) * 24 * 60 * 60 As Integer) Segundos \
+                                Cast ((JulianDay(DT.FechaHoraFin) - JulianDay(DT.FechaHoraInicio)) * 24 * 60 * 60 As Integer) Total \
                                 FROM Tareas T, DetalleTareas DT ON T.IDTarea = DT.IDTarea \
                                 WHERE T.Tag = ? \
                                 ORDER BY T.FechaAlta, DT.FechaHoraInicio"
             elif campo == "NombreTarea":
+                self.tuplaQuery = (valor,)
                 self.queryInformes = "SELECT T.Tag, T.NombreTarea, DT.FechaHoraInicio, DT.FechaHoraFin, \
-                                Cast ((JulianDay(DT.FechaHoraFin) - JulianDay(DT.FechaHoraInicio)) * 24 * 60 * 60 As Integer) Segundos \
+                                Cast ((JulianDay(DT.FechaHoraFin) - JulianDay(DT.FechaHoraInicio)) * 24 * 60 * 60 As Integer) Total \
                                 FROM Tareas T, DetalleTareas DT ON T.IDTarea = DT.IDTarea \
                                 WHERE T.NombreTarea = ? \
                                 ORDER BY T.FechaAlta, DT.FechaHoraInicio"
             else: # TodasTareas (Todas las Tareas por FechaInicio)
+                self.tuplaQuery = (valor, valor2,)
                 self.queryInformes = "SELECT T.NombreTarea, T.Tag, DT.FechaHoraInicio, DT.FechaHoraFin, \
-                                Cast ((JulianDay(DT.FechaHoraFin) - JulianDay(DT.FechaHoraInicio)) * 24 * 60 * 60 As Integer) Segundos \
+                                Cast ((JulianDay(DT.FechaHoraFin) - JulianDay(DT.FechaHoraInicio)) * 24 * 60 * 60 As Integer) Total \
                                 FROM Tareas T, DetalleTareas DT ON T.IDTarea = DT.IDTarea \
                                 WHERE DT.FechaHoraInicio BETWEEN ? AND ? \
                                 ORDER BY DT.FechaHoraInicio"
 
-            self.tuplaQuery = (valor, valor2,)
             cur.execute(self.queryInformes, self.tuplaQuery)
             registros = cur.fetchall()
             totalReg = len(registros) # total de registros de la query
@@ -495,7 +532,9 @@ class AppWindow(QMainWindow):
 
     def Exportar(self):
         # Exportar datos del informe actualmente seleccionado, a un archivo de texto .csv (el csv lo hago yo a pelo, no uso ningún import...es tan simple...)
-        try: # primero intentamos acceder al atributo de clase self.queryInformes, que no existirá si no se ha ejecutado antes un informe
+        # Primero intentamos acceder al atributo de clase self.queryInformes, que no existirá si no se ha ejecutado antes un informe
+        # esto lo hago así para evitar que se pulse el botón exportar sin haber generado previamente un informe
+        try: 
             if self.queryInformes:
                 pass
             # preguntamos al usuario dónde y con que nombre guardar el archivo de datos.
@@ -516,9 +555,14 @@ class AppWindow(QMainWindow):
                     for jj in nombresDeCampo: # añadimos una primera fila con los nombres de los campos
                         contenidoFichero += jj + "\t" # usamos el tabulador como delimitador de campos
                     contenidoFichero += "\n"
-                    for registro in registros: # recorremos todos los registros
-                        for campo in registro: # recorremos todos los campos
-                           contenidoFichero += str(campo) + "\t" # delimitamos los campos con un tabulador
+                    for fila in registros: # recorremos todos los registros
+                        #for campo in registro: # recorremos todos los campos
+                        for campo, valor in zip(nombresDeCampo, fila): # accedo mejor a través de los nombres de los campos para saber cuando llego a la columna Total
+                            print(campo, str(valor))
+                            if campo == "Total": # si es el campo Total (el total de segundos), lo convertimos a formato humano hh:mm:ss
+                                contenidoFichero += str(MiTimer.seconds_time_to_human_string(self, valor)) + "\t"
+                            else:
+                                contenidoFichero += str(valor) + "\t" # delimitamos los campos con un tabulador
                         contenidoFichero += "\n" # nueva línea
                         recNum += 1
                     # ahora guardamos fichero
@@ -535,7 +579,7 @@ class AppWindow(QMainWindow):
                 print("Guardar fichero: cancelado") # si el usuario cancela
 
         except AttributeError:
-            QMessageBox.about(self, "Información", "No hay nada que exportar.")
+            QMessageBox.about(self, "Información", str(AttributeError))
 
 
     def ActualizarLista(self, miQuery, miCampo):
@@ -549,7 +593,7 @@ class AppWindow(QMainWindow):
                                                     \nPulsa Stop, guarda el Crono, modifica Tarea y vuelve a iniciarla.")
         else:        
             self.ui.listWidgetTareas.clear()
-            self.MostrarTabla("SELECT * FROM Tareas ORDER BY FechaAlta DESC, IDTarea DESC;", ()) # le pasamos una tupla vacía
+            self.MostrarTabla("SELECT * FROM Tareas WHERE Mostrar = 1 ORDER BY FechaAlta DESC, IDTarea DESC;", ()) # le pasamos una tupla vacía
     
     def ComprobarBD(self, ahora):
         # Chequeo inicial de la BD.: se comprueba que si hay un campo FechaHoraIni con datos, no haya uno FechaHoraFin sin ellos, y si lo hay igualar ambas fechas
@@ -596,7 +640,7 @@ class AppWindow(QMainWindow):
                 event.accept()
             else:
                 event.ignore()
-
+    
     def MuestraCreditos(self, jj):
         QMessageBox.about(self, "Información", 
                             "Fer ha hecho esta simple aplicación \
@@ -617,7 +661,8 @@ class AppWindow(QMainWindow):
                         NombreTarea TEXT (30), \
                         Tag         TEXT (20), \
                         FechaAlta   TEXT (20),  \
-                        Crono       TEXT (20)  \
+                        Crono       TEXT (20),  \
+                        Mostrar     INTEGER   DEFAULT (1) \
                     );"
             cur.execute(laQuery)
             conn.commit()
@@ -760,6 +805,26 @@ class CustomDialogInformes(QDialog):
             self.setLayout(self.layout)
         else:
             QMessageBox.about(self, "Información", "No hay ningún Tag en la Base de Datos.")
+    
+    def CargarElementos(self, campo):
+        # Lo uso en Informes para cargar el Combo con los Tags distintos que haya en la BD.
+        listaValores = []
+        try:
+            conn = sqlite3.connect(BaseDeDatos)
+            cur = conn.cursor()
+            miQuery = "SELECT DISTINCT(" + campo + ") FROM Tareas ORDER BY " + campo
+            cur.execute(miQuery)
+            registros = cur.fetchall()
+            totalReg = len(registros) # total de registros de la query
+            if totalReg > 0:
+                for registro in registros:
+                    listaValores.append(registro[0]) # añadimos cada registro a la lista
+        except Error as e:
+            self.ui.statusbar.showMessage(str(e), 10000)
+        finally:
+            conn.close()
+            return listaValores
+
 
 class CustomDialogInformes2(QDialog):
     # Este custom dialog lo uso pedir datos para el informe3 que pide fechas desde-hasta
@@ -788,27 +853,6 @@ class CustomDialogInformes2(QDialog):
         self.layout.addWidget(self.fechaHasta)
         self.layout.addWidget(self.buttonBox)
         self.setLayout(self.layout)
-
-
-    def CargarElementos(self, campo):
-        # Lo uso en Informes para cargar el Combo con los Tags distintos que haya en la BD.
-        listaValores = []
-        try:
-            conn = sqlite3.connect(BaseDeDatos)
-            cur = conn.cursor()
-            miQuery = "SELECT DISTINCT(" + campo + ") FROM Tareas ORDER BY " + campo
-            cur.execute(miQuery)
-            registros = cur.fetchall()
-            totalReg = len(registros) # total de registros de la query
-            if totalReg > 0:
-                for registro in registros:
-                    listaValores.append(registro[0]) # añadimos cada registro a la lista
-        except Error as e:
-            self.ui.statusbar.showMessage(str(e), 10000)
-        finally:
-            conn.close()
-            return listaValores
-
 
 class MiTimer(QWidget):
     # MiTimer es cada uno de los listItems (filas) que hay en el listWidget. Se instancia tantas veces como tareas haya en la lista.
@@ -1175,8 +1219,15 @@ class MiTimer(QWidget):
 
 if __name__=="__main__":         
     app = QApplication(sys.argv)
-    w = AppWindow()
+    w = AppWindow(sys.argv) # le pasamos los argumentos al init
     w.show()
+    qApp.processEvents() # esto lo añado para poder ejecutar el argumento pasado (poner en marcha un crono directamente en el inicio de la app)
+    # https://stackoverflow.com/questions/46739079/execute-long-running-code-at-program-startup-after-complete-gui-is-rendered
+    # Si se inicia la app. con argumentos, es el ID de la Tarea que hay que poner en marcha directamente.
+    if len(sys.argv) > 1:
+        idEjecutar = sys.argv[1]
+        w.PonerEnMarchaTarea(idEjecutar)
+
     sys.exit(app.exec_())
 
 

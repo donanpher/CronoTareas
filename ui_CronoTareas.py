@@ -290,7 +290,7 @@ class Ui_MainWindow(object):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "Crono Tareas"))
         self.labelCronoTareas.setText(_translate("MainWindow", "Crono Tareas"))
-        self.label.setText(_translate("MainWindow", "v.1.9"))
+        self.label.setText(_translate("MainWindow", "v.2.0"))
         self.labelCronoTareas_2.setText(_translate("MainWindow", "Cronometra la duración de tus Tareas y genera informes resumen de las mismas"))
         self.labelCronoTareas_3.setText(_translate("MainWindow", "Añade nuevas tareas, selecciona una fila para modificar o eliminar"))
         self.pushButtonAgregarTarea.setText(_translate("MainWindow", "&Añadir"))
