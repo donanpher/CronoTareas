@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 """
- CronoTareas, v.2.0
+ CronoTareas, v.2.1
  Sencilla aplicación para cronometrar tiempos asociados a tareas.
  Creada usando Python 3.6.7 + PyQt5
     Fecha Inicio: 14-04-2020
@@ -41,7 +41,7 @@ __author__ = "Fernando Souto"
 __email_ = "donanpher@gmail.com"
 __copyright__ = "Copyright (c) April 2020 Fernando Souto"
 __license__ = "GPLv3"
-__version__ = "2.0"
+__version__ = "2.1"
 #########################################################
 
 BaseDeDatos = "CronoTareas.db"
@@ -83,6 +83,9 @@ class AppWindow(QMainWindow):
         self.ui.pushButtonExportar.clicked.connect(self.Exportar)
         #self.ui.comboBoxInformes.currentIndexChanged.connect(self.Informes) # esta señal es cuando cambia el elemento seleccionado
         self.ui.comboBoxInformes.activated.connect(self.Informes) # esta señal es cuando se pincha el elemento, aunque no haya cambiado la selección
+        #---------------------------------------------------
+        # Este es el punto rojo que se enciende cuando hay algún crono en marcha
+        self.ui.label_Punto1.setVisible(False)
 
         # Chequeo inicial de la BD.: se comprueba que si hay un campo FechaHoraIni con datos, no haya uno FechaHoraFin sin ellos, y si lo hay igualar ambas fechas
         # Esto puede suceder si durante el funcionamiento de un crono, el usuario sale de la app. sin más, lo que después puede provocar un error en los listados.
@@ -106,7 +109,7 @@ class AppWindow(QMainWindow):
             elID = miWidget.IDTarea.text()
             if int(elID) == int(idEjecutar):
                 miWidget.botonIniciar.click() # pulsamos el botón 'Start' correspondiente al ID de tarea con que se ha iniciado la app.
-                break
+                break # no me gustan los break!!!
 
 
     def CronosSimultaneos(self):
@@ -437,7 +440,8 @@ class AppWindow(QMainWindow):
             if dlg.exec_():
                 fechaIni = dlg.fechaDesde.date()
                 fechaFin = dlg.fechaHasta.date()
-                self.InformesDetalle("TodasTareas", fechaIni.toString("yyyy-MM-dd"), fechaFin.toString("yyyy-MM-dd"))
+                # a la fecha-hasta, se le añaden 23:59:59, porque si no, no cogería los registros de esa fecha, que sí incluyen horas y por tanto son mayores.
+                self.InformesDetalle("TodasTareas", fechaIni.toString("yyyy-MM-dd"), fechaFin.toString("yyyy-MM-dd") + " 23:59:59")
             else: # Ha pulsado Cancel!
                 pass
                 #self.ui.statusbar.showMessage("Cancelado por usuario", 5000)
@@ -863,6 +867,8 @@ class MiTimer(QWidget):
     # si se marca el check de no permitir, se descontrola el tema
     # lo que trato de hacer ahora es que, si se permiten varios cronos + se inicia más de un crono, entonces deshabilito el check.
     numCronosActivos = 0 
+    lucesDuenho = 0 # para que sólo un Crono pueda llevar este control (el dueño es el ID del Crono que tiene el control)
+    visibilidadLuz = False # para controlar la visibilidad de la luz
 
     # esta es la linea (WidgetItem), con la colección de widgets (dentro de un QHBoxLayout), que se pinta dentro de la lista.
     def __init__(self, miID, miTarea, miTag, miCrono, miLabelCrono, parent=None):
@@ -954,6 +960,12 @@ class MiTimer(QWidget):
             # en qué modo se pincha el botón iniciar? (Start|Pause|Continue)
             if self.botonIniciar.text() == "Start":
                 self.timer.start(1000) # pongo en marcha el Timer
+                # --- pijada de las luces ---
+                # asigno el ID de Tarea actual como dueño del control de las luces rojas
+                if self.lucesDuenho == 0: 
+                    self.lucesDuenho = int(self.IDTarea.text())
+                    w.ui.label_Punto1.setVisible(True) # enciendo la luz
+                # ---------------------------
                 self.tiempoActual2Ini = datetime.now()
                 self.tiempoActual2Fin = datetime.now()
                 # Si se ha restaurado un cronómetro de una vez anterior
@@ -976,6 +988,12 @@ class MiTimer(QWidget):
             elif self.botonIniciar.text() =="Pause":
                 self.timer.stop() # detengo el timer
                 MiTimer.hayUnCronoActivo = False
+                # --- pijada de las luces ---
+                # si este Crono estaba llevando el control de la luces, pues ya no.
+                if self.lucesDuenho == int(self.IDTarea.text()): 
+                    self.lucesDuenho = 0 
+                    w.ui.label_Punto1.setVisible(False) # apago la luz
+                # ---------------------------
                 self.icon4 = QtGui.QIcon()
                 self.icon4.addPixmap(QtGui.QPixmap(":/miprefijo/images/continue.ico"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
                 self.botonIniciar.setText("Continue")
@@ -991,6 +1009,12 @@ class MiTimer(QWidget):
                 self.timer.start(1000) # reanudo el Timer que estaba en pausa
                 MiTimer.hayUnCronoActivo = True
                 self.tiempoActual2Ini = datetime.now()
+                # --- pijada de las luces ---
+                # asigno el ID de Tarea actual como dueño del control de las luces rojas (si no está en uso)
+                if self.lucesDuenho == 0: 
+                    self.lucesDuenho = int(self.IDTarea.text()) 
+                    w.ui.label_Punto1.setVisible(True) # enciendo la luz
+                # ---------------------------
                 # self.miDisplay.setStyleSheet("QLCDNumber {color: red;}")
                 self.miSegundoDisplay.setStyleSheet("QLCDNumber {color: red;}")
                 self.icon3 = QtGui.QIcon()
@@ -1083,10 +1107,21 @@ class MiTimer(QWidget):
             conn.close()
 
     def showlcd(self):
-        # Esto es lo que se ejecuta con cada evento del TimeOut del Timer (1 seg.)
+        # Esto es lo que se ejecuta con cada evento TimeOut del Timer (1 seg.)
         self.tiempoActual2Fin = datetime.now()
         self.totalSegundos = (self.tiempoActual2Fin - self.tiempoActual2Ini).seconds + self.segundosAcumulado
         
+        # --- pijada de las luces ---
+        # si somos el dueño de las luces, somos quien tenemos el control de ellas
+        if self.lucesDuenho == int(self.IDTarea.text()):
+            w.ui.label_Punto1.setVisible(self.visibilidadLuz)
+            self.visibilidadLuz = not self.visibilidadLuz
+        # si no somos dueños de la luz, en cualquier momento podemos pasar a serlo, cuando se pare el crono que llevaba el control
+        elif self.lucesDuenho == 0: # asigno el ID de Tarea actual como dueño del control de las luces rojas
+            self.lucesDuenho = int(self.IDTarea.text())
+            w.ui.label_Punto1.setVisible(True) # enciendo la luz
+        # ---------------------------
+
         # Si se llega al supuesto límite del LCDDisplay ('99D 23:59:59' = 8.639.999 seg), muestro un mensaje y pregunto si desea continuar
         if (self.totalSegundos >= 8639999) and (not self.haSidoAdvertido): # '99D 23:59:59'
             self.haSidoAdvertido = True
@@ -1129,6 +1164,7 @@ class MiTimer(QWidget):
                 self.botonIniciar.setIcon(self.icon3)
                 self.botonParar.setEnabled(False) # habilitamos el botón Reset    
 
+        # Este es el Crono que se muestra en pantalla (y el oculto)
         self.miSegundoDisplay.display(self.seconds_time_to_human_string(self.totalSegundos))
         self.labelCrono.setText(self.seconds_time_to_human_string(self.totalSegundos))
 

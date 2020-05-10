@@ -270,6 +270,13 @@ class Ui_MainWindow(object):
         self.labelIcono.setStyleSheet("border-image: url(:/miprefijo/images/cronotareas.png);")
         self.labelIcono.setText("")
         self.labelIcono.setObjectName("labelIcono")
+        self.label_Punto1 = QtWidgets.QLabel(self.centralwidget)
+        self.label_Punto1.setGeometry(QtCore.QRect(738, 47, 21, 71))
+        font = QtGui.QFont()
+        font.setPointSize(72)
+        self.label_Punto1.setFont(font)
+        self.label_Punto1.setAlignment(QtCore.Qt.AlignBottom|QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft)
+        self.label_Punto1.setObjectName("label_Punto1")
         MainWindow.setCentralWidget(self.centralwidget)
         self.statusbar = QtWidgets.QStatusBar(MainWindow)
         self.statusbar.setObjectName("statusbar")
@@ -290,7 +297,7 @@ class Ui_MainWindow(object):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "Crono Tareas"))
         self.labelCronoTareas.setText(_translate("MainWindow", "Crono Tareas"))
-        self.label.setText(_translate("MainWindow", "v.2.0"))
+        self.label.setText(_translate("MainWindow", "v.2.1"))
         self.labelCronoTareas_2.setText(_translate("MainWindow", "Cronometra la duración de tus Tareas y genera informes resumen de las mismas"))
         self.labelCronoTareas_3.setText(_translate("MainWindow", "Añade nuevas tareas, selecciona una fila para modificar o eliminar"))
         self.pushButtonAgregarTarea.setText(_translate("MainWindow", "&Añadir"))
@@ -321,5 +328,6 @@ class Ui_MainWindow(object):
         self.labelTotalTareas_2.setText(_translate("MainWindow", "Selecciona informe:"))
         self.pushButtonExportar.setText(_translate("MainWindow", "E&xportar"))
         self.tabWidgetTareas.setTabText(self.tabWidgetTareas.indexOf(self.tab_2), _translate("MainWindow", "&Informes"))
+        self.label_Punto1.setText(_translate("MainWindow", "<html><head/><body><p><span style=\" color:#f60000;\">·</span></p></body></html>"))
 
 import mirecurso_rc
