@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 """
- CronoTareas, v.2.1
+ CronoTareas, v.2.2
  Sencilla aplicación para cronometrar tiempos asociados a tareas.
  Creada usando Python 3.6.7 + PyQt5
     Fecha Inicio: 14-04-2020
@@ -41,7 +41,7 @@ __author__ = "Fernando Souto"
 __email_ = "donanpher@gmail.com"
 __copyright__ = "Copyright (c) April 2020 Fernando Souto"
 __license__ = "GPLv3"
-__version__ = "2.1"
+__version__ = "2.2"
 #########################################################
 
 BaseDeDatos = "CronoTareas.db"
@@ -144,11 +144,17 @@ class AppWindow(QMainWindow):
                 miQuery = "INSERT INTO Tareas (NombreTarea, Tag, FechaAlta, Crono) VALUES (?, ?, ?, ?)"
                 cur.execute(miQuery, (modifTarea, modifTag, self.strAhora, modifDias + modifHora,))
                 conn.commit()
-                # ahora insertamos un item en la lista con esta alta, pero antes necesitamos saber cuál es el ID asignado (es autonumérico).
-                miQuery = "SELECT Max(IDTarea) FROM Tareas"
-                cur.execute(miQuery)
-                elRegistro = cur.fetchone()
-                elID = elRegistro[0]              
+                # necesitamos saber cuál es el ID asignado (es autonumérico).
+                if cur.rowcount != 1:
+                    print("Algo falló al insertar")
+                else:
+                    elID = cur.lastrowid
+                # miQuery = "SELECT Max(IDTarea) FROM Tareas"
+                # cur.execute(miQuery)
+                # elRegistro = cur.fetchone()
+                # elID = elRegistro[0]
+                #
+                # ahora insertamos un item en la lista con esta alta
                 miItem = QListWidgetItem()
                 self.ui.listWidgetTareas.insertItem(0, miItem) # inserta el item en primer lugar de la lista
                 miCustomWidget = MiTimer(str(elID), modifTarea, modifTag, modifDias + modifHora, modifDias + modifHora)
@@ -157,9 +163,6 @@ class AppWindow(QMainWindow):
                 self.ui.listWidgetTareas.setItemWidget(miItem, miCustomWidget)
                 self.ui.listWidgetTareas.setStyleSheet( "QListWidget::item { border-bottom: 1px solid black; }" ) # esta es una línea que separa líneas
                 self.show()
-                # ya no!: ahora borramos todo el contenido del listWidget para volver a cargarlo con los datos actualizados
-                # self.ui.listWidgetTareas.clear()
-                # self.MostrarTabla("SELECT * FROM Tareas ORDER BY FechaAlta DESC, IDTarea DESC;")
                 self.ui.statusbar.showMessage("Se ha añadido una nueva Tarea", 5000)
             except Error as e:
                 self.ui.statusbar.showMessage(str(e), 10000)
@@ -188,11 +191,14 @@ class AppWindow(QMainWindow):
                 laTarea = miWidget.NombreTarea.text()
                 elTag = miWidget.Tag.text()
                 elCrono = miWidget.labelCrono.text()
+                elMostrar = miWidget.labelMostrar.text()
                 # llamamos al diálogo para captar los datos con la modificación
                 dlg = CustomDialog(self)
                 dlg.setWindowTitle("Modificar Tarea")
+                dlg.miLabelIDDialog.setText("ID: " + elID)
                 dlg.miLineEditTareaDialog.setText(laTarea)
                 dlg.miLineEditTagDialog.setText(elTag)
+                dlg.miCheckArchivada.setChecked(not int(elMostrar))
                 # El crono por defecto siempre va a incluir días, aunque sean cero.
                 # esto lo hago así porque si el crono sólo incluye hora y deseamos añadir días, no podríamos hacerlo
                 if len(elCrono) == 8:
@@ -213,16 +219,18 @@ class AppWindow(QMainWindow):
                     if len(modifDias) == 1: # si el día sólo tiene un dígito, le añadimos el cero delante
                         modifDias = "0" + modifDias
                     modifDias = modifDias + "D " # le ponemos el formato nuestro que estamos usando en el display
+                    if dlg.miCheckArchivada.isChecked():
+                        modifMostrar = 0
+                    else:
+                        modifMostrar = 1
 
                     try: # hay que guardar en BD. las modificaciones
                         # modificamos en la BD.
                         conn = sqlite3.connect(BaseDeDatos)
                         cur = conn.cursor()
-                        # miQuery = "UPDATE Tareas SET NombreTarea = '" \
-                        #         + modifTarea + "', Tag = '" + modifTag + "', Crono = '" + modifDias + modifHora \
                         #         + "' WHERE IDTarea = " + elID
-                        miQuery = "UPDATE Tareas SET NombreTarea = ?, Tag = ?, Crono = ? WHERE IDTarea = ?"
-                        cur.execute(miQuery, (modifTarea, modifTag, modifDias + modifHora, elID,))
+                        miQuery = "UPDATE Tareas SET NombreTarea = ?, Tag = ?, Crono = ?, Mostrar = ? WHERE IDTarea = ?"
+                        cur.execute(miQuery, (modifTarea, modifTag, modifDias + modifHora, modifMostrar, elID,))
                         conn.commit()
                         #Se debe de guardar el estado actual de cosas y sólo modificar lo que se ha tocado.
                         ItemModificar = self.ui.listWidgetTareas.currentItem()
@@ -234,9 +242,10 @@ class AppWindow(QMainWindow):
                         miWidget.miCrono = modifDias + modifHora
                         miWidget.miSegundoDisplay.display(modifDias + modifHora)
                         miWidget.labelCrono.setText(modifDias + modifHora)
+                        miWidget.labelMostrar.setText(str(modifMostrar))
+                        if modifMostrar == 0: # si se archiva la tarea, se elimina de la lista
+                            self.ui.listWidgetTareas.takeItem(filaModificar)
 
-                        #self.ui.listWidgetTareas.clear()
-                        #self.MostrarTabla("SELECT * FROM Tareas ORDER BY FechaAlta DESC, IDTarea DESC;")
                         self.ui.statusbar.showMessage("Tarea modificada", 5000)
                     except Error as e:
                         self.ui.statusbar.showMessage(str(e), 10000)
@@ -327,7 +336,7 @@ class AppWindow(QMainWindow):
                     cur = conn.cursor()
                     tuplaBuscar = ("%" + queBuscar + "%",)
                     #miQuery = "SELECT * FROM Tareas WHERE " + campoDondeBuscar + " LIKE '%" + queBuscar + "%' ORDER BY FechaAlta DESC, IDTarea DESC;"
-                    miQuery = "SELECT * FROM Tareas WHERE " + campoDondeBuscar + " LIKE ? AND Mostrar = 1 ORDER BY FechaAlta DESC, IDTarea DESC"
+                    miQuery = "SELECT * FROM Tareas WHERE " + campoDondeBuscar + " LIKE ? ORDER BY FechaAlta DESC, IDTarea DESC"
                     cur.execute(miQuery, tuplaBuscar)
                     #cur.execute(miQuery)
                     registros = cur.fetchall()
@@ -365,7 +374,7 @@ class AppWindow(QMainWindow):
             elID = miWidget.IDTarea.text()
             elCrono = miWidget.miCrono
 
-    def AnhadirItem(self, nuevoID, nuevaTarea, nuevoTag, nuevoCrono, nuevoLabelCrono):
+    def AnhadirItem(self, nuevoID, nuevaTarea, nuevoTag, nuevoCrono, nuevoLabelCrono, nuevoLabelMostrar):
         # Un Item es cada fila de la lista de tareas
         # Este método es llamado por el método MostrarTabla, para ir añadiendo todos los reg. de la BD.
         self.nuevoID = nuevoID
@@ -373,8 +382,9 @@ class AppWindow(QMainWindow):
         self.nuevoTag = nuevoTag
         self.nuevoCrono = nuevoCrono
         self.nuevoLabelCrono = nuevoLabelCrono
+        self.nuevoMostrar = nuevoLabelMostrar
         miItem = QListWidgetItem()
-        miCustomWidget = MiTimer(self.nuevoID, self.nuevaTarea, self.nuevoTag, self.nuevoCrono, self.nuevoLabelCrono)
+        miCustomWidget = MiTimer(self.nuevoID, self.nuevaTarea, self.nuevoTag, self.nuevoCrono, self.nuevoLabelCrono, self.nuevoMostrar)
         miItem.setSizeHint(miCustomWidget.sizeHint())
         self.ui.listWidgetTareas.addItem(miItem) # añade el item al final de la lista
         #self.ui.listWidgetTareas.insertItem(0, miItem) # inserta el item en primer lugar de la lista
@@ -396,8 +406,8 @@ class AppWindow(QMainWindow):
             #elf.ui.tableWidgetNotas.setRowCount(totalReg) # dimensionamos el widget en filas
             recNum = 0
             sumaCronos = 0 # aquí vamos acumulando los segundos de cada crono para después mostrarlos en el label al pié de la lista
-            for registro in registros: # Campos: ID, Tarea, Tag, Crono, LabelCrono
-                self.AnhadirItem(str(registro[0]), registro[1], registro[2], registro[4], registro[4]) # estos son los campos
+            for registro in registros: # Campos: ID, Tarea, Tag, Crono, LabelCrono, Mostrar
+                self.AnhadirItem(str(registro[0]), registro[1], registro[2], registro[4], registro[4], str(registro[5])) # estos son los campos
                 recNum += 1
                 sumaCronos += MiTimer.ConvertirCadena_a_Segundos(self, registro[4]) # la función de conversión, está en la clase MiTimer
             # mostramos la suma de los cronos en el label (previamente convertida a formato humano)
@@ -718,6 +728,7 @@ class CustomDialog(QDialog):
     def __init__(self, *args, **kwargs):
         super(CustomDialog, self).__init__(*args, **kwargs)
         self.setWindowTitle("Añadir Tarea")
+        self.miLabelIDDialog = QLabel("ID: ")
         self.miEtiqueta = QLabel("Nombre de la Tarea")
         self.miLineEditTareaDialog = QLineEdit("")
         self.miLineEditTareaDialog.setMaxLength(30)
@@ -729,6 +740,7 @@ class CustomDialog(QDialog):
         self.miEtiquetaHoras = QLabel("Horas")
         self.miTimeEditHoras = QTimeEdit()
         self.miTimeEditHoras.setDisplayFormat("HH:mm:ss")
+        self.miCheckArchivada = QCheckBox("Tarea archivada")
 
         QBtn = QDialogButtonBox.Ok | QDialogButtonBox.Cancel
         
@@ -737,6 +749,7 @@ class CustomDialog(QDialog):
         self.buttonBox.rejected.connect(self.reject)
 
         self.layout = QVBoxLayout()
+        self.layout.addWidget(self.miLabelIDDialog)
         self.layout.addWidget(self.miEtiqueta)
         self.layout.addWidget(self.miLineEditTareaDialog)
         self.layout.addWidget(self.miEtiqueta2)
@@ -745,6 +758,7 @@ class CustomDialog(QDialog):
         self.layout.addWidget(self.miSpinDias)
         self.layout.addWidget(self.miEtiquetaHoras)
         self.layout.addWidget(self.miTimeEditHoras)
+        self.layout.addWidget(self.miCheckArchivada)
         self.layout.addWidget(self.buttonBox)
 
         self.setLayout(self.layout)
@@ -871,13 +885,14 @@ class MiTimer(QWidget):
     visibilidadLuz = False # para controlar la visibilidad de la luz
 
     # esta es la linea (WidgetItem), con la colección de widgets (dentro de un QHBoxLayout), que se pinta dentro de la lista.
-    def __init__(self, miID, miTarea, miTag, miCrono, miLabelCrono, parent=None):
+    def __init__(self, miID, miTarea, miTag, miCrono, miLabelCrono, miMostrar, parent=None):
         super(MiTimer, self).__init__(parent)
         self.miID = miID
         self.miTarea = miTarea
         self.miTag = miTag
         self.miCrono = miCrono
         self.miLabelCrono = miLabelCrono
+        self.miMostrar = miMostrar
         self.altoWidgets = 25
         self.anchoBotones = 75
         self.haSidoAdvertido = False # esto es para cuando se sobrepasa el límite teórico del Crono, en que muestro una advertencia (ver showlcd())
@@ -892,7 +907,8 @@ class MiTimer(QWidget):
         #---------------------------------------------------
         self.IDTarea = QLabel(self.miID)
         self.IDTarea.setFrameShape(QFrame.StyledPanel)
-        self.IDTarea.setFixedWidth(30)
+        self.IDTarea.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignVCenter)
+        self.IDTarea.setFixedWidth(32)
         #---------------------------------------------------
         self.NombreTarea = QLabel(self.miTarea)
         self.NombreTarea.setFrameShape(QFrame.StyledPanel)
@@ -933,6 +949,10 @@ class MiTimer(QWidget):
         self.labelCrono.setVisible(False) # oculto este label, porque sólo lo tengo para acceder a su información, que es la misma que el crono.
         #self.labelCrono.setFrameShape(QFrame.StyledPanel)
         #---------------------------------------------------
+        # Este label es el que indica si una tarea está archivada o no (pero lo ponemos oculto)
+        self.labelMostrar = QLabel(self.miMostrar)
+        self.labelMostrar.setVisible(False)
+        #---------------------------------------------------
         #self.showlcd()
         self.timer.timeout.connect(self.showlcd) # método que se ejecuta con cada Timer (1 seg.)
         self.miLayOut = QHBoxLayout()
@@ -943,6 +963,7 @@ class MiTimer(QWidget):
         self.miLayOut.addWidget(self.botonParar)
         self.miLayOut.addWidget(self.miSegundoDisplay)
         self.miLayOut.addWidget(self.labelCrono)
+        self.miLayOut.addWidget(self.labelMostrar)
         self.setLayout(self.miLayOut)
 
     def IniciarCrono(self):
@@ -951,10 +972,10 @@ class MiTimer(QWidget):
         # Lo que no se puede dar es que, si se está en modo multicrono y con varios cronos activos, se pueda pasar al modo monocrono.
         # Condición: (telita lo que me costó llegar a ella...)
         # Si se permiten varios cronos simultáneos, o si no se permiten pero que sólo haya uno activo o que el pulsado sea de Pausa o Continuar
-        # (sólo esta condición me llevó unas cuantas horas/sesiones elaborarla)
+        # (sólo esta condición me llevó un buen rato elaborarla)
         if (w.PermitirCronosSimultaneos) or (
             (not w.PermitirCronosSimultaneos) and (
-                (not MiTimer.hayUnCronoActivo) or (self.botonIniciar.text() == "Pause") or (self.botonIniciar.text() == "Continuar")
+                (not MiTimer.hayUnCronoActivo) or (self.botonIniciar.text() == "Pause") # or (self.botonIniciar.text() == "Continuar") # tenía puesto este OR
                 )
             ):
             # en qué modo se pincha el botón iniciar? (Start|Pause|Continue)

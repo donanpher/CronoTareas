@@ -80,7 +80,7 @@
      </font>
     </property>
     <property name="text">
-     <string>v.2.1</string>
+     <string>v.2.2</string>
     </property>
     <property name="alignment">
      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -234,6 +234,9 @@
        <font>
         <family>Gallaecia Castelo</family>
        </font>
+      </property>
+      <property name="toolTip">
+       <string>Elimina o Archiva una Tarea</string>
       </property>
       <property name="text">
        <string>&amp;Eliminar</string>
@@ -437,6 +440,9 @@
         <family>Gallaecia Castelo</family>
        </font>
       </property>
+      <property name="toolTip">
+       <string>Busca en la BD. (incluidas las tareas archivadas)</string>
+      </property>
       <property name="text">
        <string>&amp;Buscar</string>
       </property>
@@ -632,7 +638,7 @@
     <property name="geometry">
      <rect>
       <x>738</x>
-      <y>47</y>
+      <y>43</y>
       <width>21</width>
       <height>71</height>
      </rect>
