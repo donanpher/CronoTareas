@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 """
- CronoTareas, v.2.2
+ CronoTareas, v.2.3
  Sencilla aplicación para cronometrar tiempos asociados a tareas.
  Creada usando Python 3.6.7 + PyQt5
     Fecha Inicio: 14-04-2020
@@ -157,7 +157,7 @@ class AppWindow(QMainWindow):
                 # ahora insertamos un item en la lista con esta alta
                 miItem = QListWidgetItem()
                 self.ui.listWidgetTareas.insertItem(0, miItem) # inserta el item en primer lugar de la lista
-                miCustomWidget = MiTimer(str(elID), modifTarea, modifTag, modifDias + modifHora, modifDias + modifHora)
+                miCustomWidget = MiTimer(str(elID), modifTarea, modifTag, modifDias + modifHora, modifDias + modifHora, "1")
                 miItem.setSizeHint(miCustomWidget.sizeHint())
                 #self.ui.listWidgetTareas.addItem(miItem) # añade el item al final de la lista
                 self.ui.listWidgetTareas.setItemWidget(miItem, miCustomWidget)

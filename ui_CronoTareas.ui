@@ -80,7 +80,7 @@
      </font>
     </property>
     <property name="text">
-     <string>v.2.2</string>
+     <string>v.2.3</string>
     </property>
     <property name="alignment">
      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -638,9 +638,9 @@
     <property name="geometry">
      <rect>
       <x>738</x>
-      <y>43</y>
+      <y>37</y>
       <width>21</width>
-      <height>71</height>
+      <height>81</height>
      </rect>
     </property>
     <property name="font">

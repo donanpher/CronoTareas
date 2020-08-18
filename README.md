@@ -5,10 +5,10 @@
 ## Cronometra la duración de tus Tareas.  
 ## <span style="color:grey"><i>Time the duration of your Tasks</i></span>
 Hecha en Python 3.6.7 + PyQt5 + SQLite 3  
-Versión 2.2 para Linux, testada únicamente en Ubuntu Budgie 18.04.4 LTS  
+Versión 2.3 para Linux, testada únicamente en Ubuntu Budgie 18.04.4 LTS & Kubuntu 20.04 
 <span style="color:grey">
 <i>Made with Python 3.6.7 + PyQt5 + SQLite 3</i>  
-<i>Linux version 2.2, tested only on Ubuntu Budgie 18.04.4 LTS</i>  
+<i>Linux version 2.3, tested only on Ubuntu Budgie 18.04.4 LTS & Kubuntu 20.04</i>  
 </span>  
 Fernando Souto (donanpher@gmail.com)  
 A Coruña (Galicia), Spain  
@@ -19,13 +19,13 @@ Abril 2020 (durante la cuarentena del #Coronavirus #SARS-CoV-2 #Covid-19)
 ![Screenshot](./images/Screenshot_CronoTareas.png)
 ---
 ## Instalación en Linux <span style="color:grey"><i>(Linux installation)</i></span>
-* <a href="https://drive.google.com/file/d/16WJgOhpGJo8f17ovK15lem6nqCTBrfoC/view?usp=sharing">Descargar CronoTareas.zip (46 MB)</a>
+* <a href="https://drive.google.com/file/d/1RqEKJ9KAFiXr-f8i49iwLoG_amduuJr4/view?usp=sharing">Descargar CronoTareas.zip (46 MB)</a>
 * Descomprimelo en una nueva carpeta, por ejemplo /opt/cronotareas/
-* Ejecuta CronoTareas (es un único fichero ejecutable con todas las dependencias ya incluidas)
+* Ejecuta CronoTareas (es un único fichero ejecutable creado con pyinstaller con todas las dependencias ya incluidas)
 ---
-* <span style="color:grey"><i><a href="https://drive.google.com/file/d/16WJgOhpGJo8f17ovK15lem6nqCTBrfoC/view?usp=sharing">Download CronoTareas.zip (46 MB)</a></i> </span>  
+* <span style="color:grey"><i><a href="https://drive.google.com/file/d/1RqEKJ9KAFiXr-f8i49iwLoG_amduuJr4/view?usp=sharing">Download CronoTareas.zip (46 MB)</a></i> </span>  
 * <span style="color:grey"><i>Unzip it into a new folder, for example /opt/cronotareas/</i> </span>  
-* <span style="color:grey"><i>Run CronoTareas (it's a single file with all dependencies included)</i> </span>  
+* <span style="color:grey"><i>Run CronoTareas (it's a single file build with pyinstaller with all dependencies included)</i> </span>  
 ---
 ## Dependencias:  <span style="color:grey"><i>(Dependencies)</i></span>
 Python 3.6.7, PyQt5, SQLite 3  

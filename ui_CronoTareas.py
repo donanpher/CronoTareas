@@ -2,11 +2,13 @@
 
 # Form implementation generated from reading ui file 'ui_CronoTareas.ui'
 #
-# Created by: PyQt5 UI code generator 5.11.3
+# Created by: PyQt5 UI code generator 5.14.1
 #
 # WARNING! All changes made in this file will be lost!
 
+
 from PyQt5 import QtCore, QtGui, QtWidgets
+
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -271,7 +273,7 @@ class Ui_MainWindow(object):
         self.labelIcono.setText("")
         self.labelIcono.setObjectName("labelIcono")
         self.label_Punto1 = QtWidgets.QLabel(self.centralwidget)
-        self.label_Punto1.setGeometry(QtCore.QRect(738, 43, 21, 71))
+        self.label_Punto1.setGeometry(QtCore.QRect(738, 37, 21, 81))
         font = QtGui.QFont()
         font.setPointSize(72)
         self.label_Punto1.setFont(font)
@@ -297,7 +299,7 @@ class Ui_MainWindow(object):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "Crono Tareas"))
         self.labelCronoTareas.setText(_translate("MainWindow", "Crono Tareas"))
-        self.label.setText(_translate("MainWindow", "v.2.2"))
+        self.label.setText(_translate("MainWindow", "v.2.3"))
         self.labelCronoTareas_2.setText(_translate("MainWindow", "Cronometra la duración de tus Tareas y genera informes resumen de las mismas"))
         self.labelCronoTareas_3.setText(_translate("MainWindow", "Añade nuevas tareas, selecciona una fila para modificar o eliminar"))
         self.pushButtonAgregarTarea.setText(_translate("MainWindow", "&Añadir"))
@@ -331,5 +333,4 @@ class Ui_MainWindow(object):
         self.pushButtonExportar.setText(_translate("MainWindow", "E&xportar"))
         self.tabWidgetTareas.setTabText(self.tabWidgetTareas.indexOf(self.tab_2), _translate("MainWindow", "&Informes"))
         self.label_Punto1.setText(_translate("MainWindow", "<html><head/><body><p><span style=\" color:#f60000;\">·</span></p></body></html>"))
-
 import mirecurso_rc
