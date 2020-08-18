@@ -5,7 +5,7 @@
 ## Cronometra la duración de tus Tareas.  
 ## <span style="color:grey"><i>Time the duration of your Tasks</i></span>
 Hecha en Python 3.6.7 + PyQt5 + SQLite 3  
-Versión 2.3 para Linux, testada únicamente en Ubuntu Budgie 18.04.4 LTS & Kubuntu 20.04 
+Versión 2.3 para Linux, testada únicamente en Ubuntu Budgie 18.04.4 LTS & Kubuntu 20.04  
 <span style="color:grey">
 <i>Made with Python 3.6.7 + PyQt5 + SQLite 3</i>  
 <i>Linux version 2.3, tested only on Ubuntu Budgie 18.04.4 LTS & Kubuntu 20.04</i>  
